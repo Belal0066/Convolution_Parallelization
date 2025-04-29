@@ -1,0 +1,123 @@
+% --- START OF FILE proposal.tex ---
+
+% Ensure 10pt font size is specified
+\documentclass[conference, 10pt]{IEEEtran} 
+
+% --- Preamble (Packages, etc.) ---
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx} % Needed for including figures
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url} % Needed for \url{} 
+
+% Optional: For code listings (choose one or use verbatim)
+% \usepackage{listings} 
+% \lstset{
+%   basicstyle=\footnotesize\ttfamily,
+%   breaklines=true,
+% }
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+\begin{document}
+
+% --- Title Block ---
+\title{Accelerating Convolution Kernels on Multi-Core CPUs using OpenMP Parallelization}
+% --- AUTHORS ---
+\author{
+    \IEEEauthorblockN{1\textsuperscript{st} [Student One Name]}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    Student1ID@eng.asu.edu.eg}
+\and
+    \IEEEauthorblockN{2\textsuperscript{nd} [Student Two Name]}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    Student2ID@eng.asu.edu.eg}
+\and
+    \IEEEauthorblockN{3\textsuperscript{rd} [Student Three Name]}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    Student3ID@eng.asu.edu.eg}
+\and
+    \IEEEauthorblockN{4\textsuperscript{th} [Student Four Name]}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    Student4ID@eng.asu.edu.eg}
+}
+
+
+\maketitle 
+
+% --- Abstract & Keywords ---
+\begin{abstract}
+Cconvolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. We employ profiling techniques to identify bottlenecks, apply OpenMP directives to parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, contextualized within the principles of automatic parallelization analysis.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Parallel Computing, OpenMP, Image Convolution, Image Processing, Performance Analysis, Multi-core CPU, Kernel Acceleration, Speedup, Scalability
+\end{IEEEkeywords}
+
+% ====================================================================
+% --- MAIN PROPOSAL CONTENT STARTS HERE ---
+% ====================================================================
+
+% --- Introduction ---
+\section{Introduction}
+\textit{{\color{blue} % Optional color for visibility
+[Placeholder for Introduction: This section will motivate the importance of parallelizing image convolution, introduce the challenges of sequential execution on multi-core systems, provide relevant background from literature (e.g., \cite{trustmebro2025}), and state the overall objectives and approach of this project. This placeholder text should be replaced with the actual content.]
+}}
+
+% --- PROBLEM DEFINITION ---
+\section{Problem Definition}
+\textit{{\color{blue} % Optional color for visibility
+[Placeholder for Problem Definition: This section will precisely define the scope of the project. It will present the illustrative sequential image convolution kernel (e.g., Fig.~\ref{fig:seq_code}), explain its relevance, connect it to dependency analysis concepts (referencing \cite{idkfactchecking2025} where applicable), and clearly state the specific research problem and tasks: profile, analyze dependencies, parallelize using OpenMP, and evaluate. This placeholder text should be replaced with the actual content, including code figures.]
+}}
+
+% Example Figure (referenced above, keep or adapt)
+\begin{figure}[htbp]
+\begin{verbatim}
+// Placeholder for sequential_convolve code
+void sequential_convolve(...) {
+  // ... loops ...
+}
+\end{verbatim}
+\caption{Illustrative Sequential Convolution Kernel.}
+\label{fig:seq_code}
+\end{figure}
+
+
+% --- EVALUATION PLAN ---
+\section{Proposed Evaluation}
+\textit{{\color{blue} % Optional color for visibility
+[Placeholder for Proposed Evaluation: This section will detail the methodology for evaluating the parallelized convolution kernel. It includes establishing the sequential baseline, verifying correctness, the benchmarking procedure (hardware, software environment, varying thread counts), key performance metrics (Execution Time, Speedup, Efficiency), planned benchmark inputs (images, kernels), and the criteria for success. This placeholder text should be replaced with the specific evaluation plan.
+\cite{hbdscientific2025}]
+}}
+
+
+
+
+
+% ====================================================================
+% --- END OF MAIN PROPOSAL CONTENT ---
+% ====================================================================
+
+
+\section*{Acknowledgment} 
+% Add acknowledgments
+We thank Dr. Islam Tharwat Abdel Halim and Eng. Hassan Ahmed for their guidance.
+
+
+% --- Bibliography Setup (Keep these lines) ---
+\bibliographystyle{IEEEtran} 
+\bibliography{references} % file is references.bib
+
+\end{document}
+% --- END OF FILE proposal.tex ---
