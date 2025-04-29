@@ -34,23 +34,23 @@
     Cairo, Egypt \\
     Student1ID@eng.asu.edu.eg}
 \and
-    \IEEEauthorblockN{2\textsuperscript{nd} [Student Two Name]}
+    \IEEEauthorblockN{2\textsuperscript{nd} [Mohamed Salah Fathy]}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    Student2ID@eng.asu.edu.eg}
+    21p0117@eng.asu.edu.eg}
 \and
-    \IEEEauthorblockN{3\textsuperscript{rd} [Student Three Name]}
+    \IEEEauthorblockN{3\textsuperscript{rd} [Salma Mohamed Youssef]}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    Student3ID@eng.asu.edu.eg}
+    21p0148@eng.asu.edu.eg}
 \and
-    \IEEEauthorblockN{4\textsuperscript{th} [Student Four Name]}
+    \IEEEauthorblockN{4\textsuperscript{th} [Salma Hisham Hassan Wagdy]}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    Student4ID@eng.asu.edu.eg}
+    21p0124@eng.asu.edu.eg}
 }
 
 
@@ -58,7 +58,7 @@
 
 % --- Abstract & Keywords ---
 \begin{abstract}
-Cconvolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. We employ profiling techniques to identify bottlenecks, apply OpenMP directives to parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, contextualized within the principles of automatic parallelization analysis.
+Convolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. We employ profiling techniques to identify bottlenecks, apply OpenMP directives to parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, contextualized within the principles of automatic parallelization analysis.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -72,7 +72,30 @@ Parallel Computing, OpenMP, Image Convolution, Image Processing, Performance Ana
 % --- Introduction ---
 \section{Introduction}
 \textit{{\color{blue} % Optional color for visibility
-[Placeholder for Introduction: This section will motivate the importance of parallelizing image convolution, introduce the challenges of sequential execution on multi-core systems, provide relevant background from literature (e.g., \cite{trustmebro2025}), and state the overall objectives and approach of this project. This placeholder text should be replaced with the actual content.]
+[Convolution is a foundational operation in image processing and computer vision, 
+underpinning tasks such as edge detection, blurring, and feature extraction. It is also a core component in deep learning architectures. 
+Despite its importance, convolution is computationally intensive, particularly for high-resolution and multi-channel images, 
+due to its repeated access to neighboring pixels and large computational footprint.
+Sequential implementations of convolution underutilize modern parallel hardware, leading to inefficient execution and increased processing time. 
+Automatic parallelization offers a promising solution by transforming sequential code into parallel code with minimal programmer intervention. 
+This process relies on static or dynamic code analysis to identify parallelizable sections,
+divide workloads, and coordinate execution across computing resources. 
+However, automatic parallelization remains non-trivial due to challenges such as data dependencies, 
+load balancing, and communication overhead \cite{hager2021hpc}.
+To address these challenges, this project implements and compares three parallelization approaches 
+for accelerating sequential 2D convolution kernels using: 
+(1) MPI for distributed memory parallelization\cite{toth2016convolution}. 
+(2) Combining MPI with OpenMP to leverage both inter-process and intra-process parallelism, improving thread-level concurrency.
+MPI enables efficient communication and workload distribution across processes, 
+while OpenMP facilitates shared-memory parallelism within nodes \cite{farber2011openmp}. 
+(3) Leveraging CUDA for GPU-based acceleration,
+capitalizing on massive thread-level parallelism available in modern GPUs \cite{nvidia2021cuda}.
+We begin by profiling the sequential code to identify bottlenecks. 
+Domain decomposition and thread parallelism techniques will then be applied, tailored to each architecture. 
+Each parallelization approach will then be implemented and benchmarked 
+to evaluate performance in terms of speedup, scalability, and efficiency.
+This work aims to provide insights into the trade-offs and benefits of distributed, shared-memory, and GPU-based parallelization techniques, 
+contributing to the broader understanding of high-performance computing in image processing.]
 }}
 
 % --- PROBLEM DEFINITION ---
