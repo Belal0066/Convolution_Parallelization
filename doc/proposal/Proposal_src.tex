@@ -72,13 +72,20 @@ Parallel Computing, OpenMP, Image Convolution, Image Processing, Performance Ana
 % --- Introduction ---
 \section{Introduction}
 \textit{{\color{blue} % Optional color for visibility
-[Convolution is a foundational operation in image processing and computer vision, essential for tasks such as edge detection, blurring, and feature extraction. And more recently, It is also a core component in many deep learning architectures. Despite its ubiquity, convolution is known to be computationally expensive, especially when applied to large images or multiple channels. When executed sequentially on modern multi-core systems, convolution operations often underutilize the available hardware resources, leading to suboptimal performance and increased processing time.
-
-As multi-core processors have become the standard in contemporary computing environments, the need to exploit their capabilities through parallelization has grown significantly. Automatic parallelization techniques aim to bridge this gap by transforming sequential code into parallel code without requiring extensive manual intervention. However, the parallelization of convolution operations poses several challenges, including handling data dependencies, managing memory access patterns, and minimizing synchronization overhead \cite{hager2021hpc}. These challenges are particularly critical in image processing, where the convolution kernel accesses neighboring pixel values, making naive parallelization error-prone.
-
-To address these issues, researchers have explored parallelization frameworks such as OpenMP, which provides a simple yet powerful interface for shared-memory parallelism. When applied thoughtfully, OpenMP directives can yield substantial performance improvements in convolution tasks \cite{farber2011openmp}. Prior work has demonstrated that even modest parallelization of convolution loops can lead to significant gains in execution time and scalability \cite{toth2016convolution}.
-
-In this project, we focus on analyzing and parallelizing a sequential image convolution kernel using OpenMP on a multi-core CPU. Our approach involves profiling the code to identify performance bottlenecks, applying parallel constructs to the core convolution routines, and evaluating the resulting speedup. Through this study, we aim to provide undergraduate students with hands-on experience in automatic parallelization and highlight the practical benefits of parallel programming in optimizing a widely-used computational kernel.]
+[Convolution is a foundational operation in image processing and computer vision, widely used for tasks such as edge detection, blurring, and feature extraction. It's also a core component in many deep learning architectures. 
+Despite its ubiquity, convolution is known to be computationally intensive, particularly when applied to large images or multi-channel data. 
+Sequential implementations of convolution often underutilize the modern multi-core CPU architectures, leading to suboptimal performance and increased processing time.
+Automatic parallelization offers a promising approach to address these performance limitations by transforming sequential code into parallel code with minimal programmer intervention 
+This process involves analyzing the code to identify opportunities for parallelism, dividing computations into parallel tasks, and coordinating their execution to maximize hardware utilization. 
+However, automatic parallelization presents challenges such as managing data dependencies, balancing workload distribution, and minimizing communication overhead, especially for operations like convolution that rely on local neighborhoods in the input data.
+This research project focuses on analyzing and parallelizing image convolution kernels to demonstrate the potential of automatic parallelization techniques. 
+Specifically, we aim to investigate the performance limitations of sequential convolution implementations and explore acceleration using OpenMP, 
+a widely used framework for shared-memory parallel programming. By profiling the sequential code to identify bottlenecks and applying OpenMP directives to parallelize the core convolution loops, 
+we aim to achieve significant performance improvements. The project will also evaluate the scalability and efficiency of the parallel implementation, providing insights into the practical benefits and challenges of parallelizing computationally intensive kernels.
+Through this work, we aim to highlight the importance of mastering parallel programming paradigms and tools, 
+such as OpenMP, to efficiently solve real-world computational problems. 
+The findings will contribute to a deeper understanding of automatic parallelization and its application to high-performance computing tasks in image processing.
+]
 }}
 
 % --- PROBLEM DEFINITION ---
