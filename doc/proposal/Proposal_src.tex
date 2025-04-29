@@ -78,14 +78,16 @@ Sequential implementations of convolution often underutilize the modern multi-co
 Automatic parallelization offers a promising approach to address these performance limitations by transforming sequential code into parallel code with minimal programmer intervention 
 This process involves analyzing the code to identify opportunities for parallelism, dividing computations into parallel tasks, and coordinating their execution to maximize hardware utilization. 
 However, automatic parallelization presents challenges such as managing data dependencies, balancing workload distribution, and minimizing communication overhead, especially for operations like convolution that rely on local neighborhoods in the input data.
-This research project focuses on analyzing and parallelizing image convolution kernels to demonstrate the potential of automatic parallelization techniques. 
-Specifically, we aim to investigate the performance limitations of sequential convolution implementations and explore acceleration using OpenMP, 
-a widely used framework for shared-memory parallel programming. By profiling the sequential code to identify bottlenecks and applying OpenMP directives to parallelize the core convolution loops, 
-we aim to achieve significant performance improvements. The project will also evaluate the scalability and efficiency of the parallel implementation, providing insights into the practical benefits and challenges of parallelizing computationally intensive kernels.
-Through this work, we aim to highlight the importance of mastering parallel programming paradigms and tools, 
-such as OpenMP, to efficiently solve real-world computational problems. 
-The findings will contribute to a deeper understanding of automatic parallelization and its application to high-performance computing tasks in image processing.
-]
+Message Passing Interface (MPI) has emerged as a standard and powerful framework for distributed memory parallel programming, enabling efficient communication and task coordination across multiple processes. 
+While MPI offers fine-grained control over data distribution and communication, effectively applying it to convolution operations requires careful handling of data partitioning, boundary conditions, and inter-process communication \cite{hager2021hpc}.
+Convolution is particularly challenging to parallelize due to its data dependencies — each output value depends on a local neighborhood in the input matrix. 
+Naively distributing data without overlap leads to incorrect results at boundaries. 
+Typically, parallelizing convolution with MPI could involve for example strategies such as halo exchange or ghost cell communication to preserve correctness \cite{toth2016convolution}. 
+Previous research has demonstrated that MPI-based parallelization of convolution can lead to substantial performance improvements, especially when scaling across multiple compute nodes \cite{farber2011openmp}.
+Through this work, we aim to analyze the performance limitations of a sequential convolution kernel and implement a parallel version using MPI. We will begin by profiling the original code to identify bottlenecks, 
+then apply domain decomposition techniques to parallelize the convolution routine across multiple processes. The parallel implementation will be benchmarked to evaluate speedup and scalability, 
+providing insight into the practical benefits and challenges of automatic parallelization in distributed systems.
+The project underscores the importance of mastering parallel programming paradigms like MPI to efficiently solve computational problems in real-world image processing tasks.]
 }}
 
 % --- PROBLEM DEFINITION ---
