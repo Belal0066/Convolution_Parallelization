@@ -25,25 +25,25 @@
 \title{Accelerating Convolution Kernels on Multi-Core CPUs using Parallel Programming}
 % --- AUTHORS ---
 \author{
-    \IEEEauthorblockN{1\textsuperscript{st} [Student One Name]}
+    \IEEEauthorblockN{1\textsuperscript{st} Belal Anas Awad}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    Student1ID@eng.asu.edu.eg}
+    21p0072@eng.asu.edu.eg}
 \and
-    \IEEEauthorblockN{2\textsuperscript{nd} [Mohamed Salah Fathy]}
+    \IEEEauthorblockN{2\textsuperscript{nd} Mohamed Salah Fathy}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
     21p0117@eng.asu.edu.eg}
 \and
-    \IEEEauthorblockN{3\textsuperscript{rd} [Salma Mohamed Youssef]}
+    \IEEEauthorblockN{3\textsuperscript{rd} Salma Mohamed Youssef}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
     21p0148@eng.asu.edu.eg}
 \and
-    \IEEEauthorblockN{4\textsuperscript{th} [Salma Hisham Hassan Wagdy]}
+    \IEEEauthorblockN{4\textsuperscript{th} Salma Hisham Hassan Wagdy}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
@@ -94,29 +94,75 @@ This work aims to provide insights into the trade-offs and benefits of distribut
 contributing to the broader understanding of high-performance computing in image processing.
 
 
+
+
 % --- PROBLEM DEFINITION ---
 \section{Problem Definition}
-\textit{{\color{blue} % Optional color for visibility
-[Placeholder for Problem Definition: This section will precisely define the scope of the project. It will present the illustrative sequential image convolution kernel (e.g., Fig.~\ref{fig:seq_code}), explain its relevance, connect it to dependency analysis concepts (referencing where applicable), and clearly state the specific research problem and tasks: profile, analyze dependencies, parallelize using OpenMP, and evaluate. This placeholder text should be replaced with the actual content, including code figures.]
-}}
 
-% Example Figure (referenced above, keep or adapt)
-\begin{figure}[htbp]
-\begin{verbatim}
-// Placeholder for sequential_convolve code
-void sequential_convolve(...) {
-  // ... loops ...
-}
-\end{verbatim}
-\caption{Illustrative Sequential Convolution Kernel.}
-\label{fig:seq_code}
-\end{figure}
+\subsection{The Convolution Operation}
+A convolution operation involves the following detailed steps:
+
+\begin{itemize}
+    \item \textbf{Filter Definition:} A small matrix (typically 3×3 or 5×5) is defined as the convolutional kernel.
+    \item \textbf{Kernel Traversal:} This kernel moves systematically across the input image from left-to-right and top-to-bottom.
+    \item \textbf{Dot Product Computation:} At each location:
+    \begin{enumerate}
+        \item The kernel is aligned with a portion of the image.
+        \item Element-wise multiplication is performed between kernel values and corresponding image pixels.
+        \item All products are summed to produce a single output value.
+    \end{enumerate}
+    \item \textbf{Feature Map Formation:} The results of these computations form a new matrix representing transformed features of the original image.
+\end{itemize}
+
+\subsection{Convolution in CNNs}
+Convolutional Neural Networks (CNNs) utilize multiple convolutional layers combined with traditional neural network layers. The hierarchical feature extraction process occurs as follows:
+
+\begin{itemize}
+    \item \textbf{Layer Progression:}
+    \begin{itemize}
+        \item Initial layers detect basic features (edges, textures).
+        \item Intermediate layers combine these into more complex patterns.
+        \item Final layers identify complete components (e.g., facial features, object parts).
+    \end{itemize}
+    \item \textbf{Implementation Steps:}
+    \begin{enumerate}
+        \item Kernel alignment at the top-left image pixel.
+        \item Precise element-wise multiplication between kernel and image region.
+        \item Aggregation of products into a feature map pixel.
+        \item Systematic repetition across the entire image with specified stride.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Parallelization Approaches}
+\subsubsection{Data Parallelism}
+Data parallelism is a powerful technique where the same operation (like convolution) is performed on different parts of data simultaneously.
+
+\begin{itemize}
+    \item \textbf{Implementation Steps:}
+    \begin{enumerate}
+        \item \textbf{Partition the input data into smaller chunks (e.g., image tiles):} Each block will be assigned to a thread/process.
+        \item \textbf{Apply Convolution in Parallel:} Each thread applies the same kernel on its data block. Since output at each location is independent, there's no data race.
+        \item Each unit performs the convolution operation independently on its assigned chunk.
+        \item \textbf{Synchronize or Merge Results:} In shared-memory systems (OpenMP, CUDA), threads write to separate output buffers — minimal sync needed. In distributed systems (MPI), use \texttt{MPI\_Gather} or \texttt{MPI\_Reduce} to merge partial outputs.
+    \end{enumerate}
+    \item \textbf{Advantages:}
+    \begin{itemize}
+        \item \textbf{Increased Speed:} Each thread or processing unit handles a portion of data, reducing execution time.
+        \item \textbf{Scalability:} Works efficiently on multi-core CPUs, GPUs, and clusters (via MPI).
+        \item \textbf{Simplicity:} You replicate the same logic across data chunks — easier to manage and debug.
+        \item \textbf{Reduced Memory Bottleneck:} Localized data access patterns improve cache utilization and memory access speeds.
+        \item \textbf{Portability:} Data parallelism can be implemented with OpenMP (CPU), CUDA (GPU), or MPI (distributed).
+    \end{itemize}
+\end{itemize}
+
+
+
 
 
 % --- EVALUATION PLAN ---
 \section{Proposed Evaluation}
 
-\subsection{Hardware/Software Environment}
+\subsection{\textbf{Hardware/Software Environment}}
 
 \textbf{Hardware Platform.} The evaluation will be conducted on a system powered by an \textit{AMD Ryzen\texttrademark~9 5900HS} processor, featuring:
 \begin{itemize}
@@ -137,49 +183,28 @@ This configuration is well-suited for high-throughput parallel workloads, multi-
 
 
 
-\subsection{Benchmark Workloads}
+\subsection{\textbf{Benchmark Workloads}}
 
 Benchmark workloads are chosen based on key criteria: representativeness, scalability, memory/computation balance, reproducibility, and their suitability for multi-core evaluation. The goal is to probe both compute-bound and memory-bound behaviors across a range of image sizes and convolution configurations.
 
-\subsubsection{Synthetic 2D Convolutions}
+\subsubsection{\textbf{Synthetic 2D Convolutions}}
 
-To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images \cite{Tousimojarad2017}:
-
-\begin{itemize}
-    \item \textbf{3$\times$3 kernel on 512$\times$512 image}: Fits entirely in L2/L3 cache, highlighting compute throughput and vectorization.
-    \item \textbf{5$\times$5 kernel on 1024$\times$1024 image}: Stresses shared L3 cache, revealing cache contention and reuse patterns.
-    \item \textbf{7$\times$7 kernel on 2048$\times$2048 image}: Exceeds cache capacity, measuring the impact of main memory access and bandwidth limits.
-\end{itemize}
-
-Each workload is evaluated under both strong and weak scaling: strong scaling fixes the total problem size while increasing thread count; weak scaling maintains constant work per thread as thread count grows.
-
-\subsubsection{Separable Filters}
-
-To evaluate the effects of cache reuse and two-pass access patterns, we implement separable convolutions:
-
-\begin{itemize}
-    \item \textbf{Gaussian 5$\times$5 (separable)} on a 1024$\times$1024 image: Each 1D pass is parallelized independently, testing inter-pass synchronization and cache locality.
-    \item \textbf{Sobel edge detection (3$\times$3)} on a 2048$\times$2048 image: Applies horizontal and vertical filters in sequence, capturing the latency vs. throughput trade-off for small but memory-intensive operations.
-\end{itemize}
-
-These workloads are useful for studying temporal locality and synchronization overhead.
-
-\subsubsection{End-to-End Image Processing Pipelines}
-
-To simulate realistic usage scenarios, we implement a three-stage filter pipeline:
-
-\begin{itemize}
-    \item \textbf{Pipeline: Gaussian blur $\rightarrow$ Sharpen $\rightarrow$ Edge detection}
-    \begin{itemize}
-        \item \textbf{on 4096$\times$2160 (4K) image}: Fits within main memory but exceeds shared cache. Evaluates performance on typical high-resolution input.
-        \item \textbf{on 8192$\times$4608 (8K) image}: High-throughput scenario stressing memory bandwidth and thread scheduling efficiency. Tests tiling and thread binding strategies.
-    \end{itemize}
-\end{itemize}
-
-All inputs are pseudo-random but deterministic to ensure reproducibility. Workload configurations are executed using 1 to 16 threads to investigate both physical core utilization and the effect of simultaneous multithreading (SMT).
+To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images \cite{Tousimojarad2017}.
 
 
-\subsection{Measurement Methodology}
+\subsubsection{\textbf{Separable Filters}}
+
+To evaluate the effects of cache reuse and two-pass access patterns, we implement separable convolutions.
+
+
+
+\subsubsection{\textbf{End-to-End Image Processing Pipelines}}
+
+To simulate realistic usage scenarios, we implement a three-stage filter pipeline.
+
+
+
+\subsection{\textbf{Measurement Methodology}}
 
 To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{Gawrych2023,  Rajput2013,  Yoon2012}.
 
@@ -204,7 +229,7 @@ We conduct both strong and weak scaling evaluations. For strong scaling, problem
 \textbf{6) Profiling and Hardware Analysis:} Low-level profiling is conducted using \texttt{perf}. We collect metrics such as cycles, instructions, cache misses, branch mispredictions, and memory bandwidth utilization. These metrics help correlate runtime behavior with architectural bottlenecks and assess the effectiveness.
 
 
-\subsection{Performance Metrics and Plots}
+\subsection{\textbf{Performance Metrics and Plots}}
 
 To accurately convey both quantitative performance gains and underlying computational behavior, our evaluation will employ a selected set of performance metrics and visualizations. These choices follow established best practices from prior research in high-performance convolution and parallel computing \cite{Wang2023,  hager2021hpc, Rajput2013, Yoon2012}.
 
@@ -236,8 +261,6 @@ Using \texttt{perf}, we will collect metrics such as cycles, instructions retire
 All plots will be annotated with error bars reflecting the standard deviation over 10 runs. This practice enhances the interpretability of results and supports reproducibility by conveying variability in runtime behavior \cite{Yoon2012}.
 
 Our chosen metrics and visualizations aim to support a rigorous, transparent, and insightful analysis of parallel performance across all stages of implementation and testing.
-
-
 
 
 
