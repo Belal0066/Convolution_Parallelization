@@ -117,33 +117,29 @@ void sequential_convolve(...) {
 \end{figure}
 
 
-% --- EVALUATION PLAN ---
+
 % --- EVALUATION PLAN ---
 \section{Proposed Evaluation}
 
-\subsection{Experimental Environment}
+\subsection{Hardware/Software Environment}
 
-\begin{table}[h!]
-\centering
-\caption{Experimental Environment Configuration}
-\begin{tabular}{|l|l|}
-\hline
-\textbf{Component} & \textbf{Specification} \\
-\hline
-Processor & AMD Ryzen\texttrademark~9 5900HS \\
-Cores / Threads & 8 cores / 16 threads (SMT-enabled) \\
-Base / Boost Clock & 3.3~GHz / 4.68~GHz \\
-Cache & L1: 512~KB, L2: 4~MB, L3: 16~MB \\
-Memory & 16~GB DDR4-3200 (Dual-channel) \\
-Memory Bandwidth & Up to 51.2~GB/s \\
-Operating System & Ubuntu 24.04.2 LTS \\
-Kernel Version & Linux 6.11.0 \\
-Compiler & GCC 13.3.0 \\
-Profiler & \texttt{perf} v6.11.11 \\
-\hline
-\end{tabular}
-\label{tab:exp-env}
-\end{table}
+\textbf{Hardware Platform.} The evaluation will be conducted on a system powered by an \textit{AMD Ryzen\texttrademark~9 5900HS} processor, featuring:
+\begin{itemize}
+    \item \textbf{CPU Configuration:} 1 socket $\times$ 8 physical cores $\times$ 2 threads/core = 16 logical threads
+    \item \textbf{Clock Speeds:} Base frequency of approximately 3.3~GHz, with turbo boost up to 4.68~GHz; SMT enabled
+    \item \textbf{Cache Hierarchy:} 16~MB shared L3, 4~MB L2 (512~KB/core), and 512~KB L1 cache
+    \item \textbf{Memory:} Dual-channel 16~GB DDR4 @ 3200~MHz (2$\times$8~GB SODIMM)
+    \item \textbf{Instruction Set Extensions:} AVX2, FMA, BMI2, AES-NI, SHA, and AMD-V for virtualization
+\end{itemize}
+This configuration is well-suited for high-throughput parallel workloads, multi-threaded compilation, and virtualized environments.
+
+\textbf{Software Stack.}
+\begin{itemize}
+    \item \textbf{Operating System:} Ubuntu 24.04.2 LTS with Linux kernel 6.11.0
+    \item \textbf{Compiler:} GNU GCC 13.3.0
+    \item \textbf{Profiler:} Linux \texttt{perf} utility (v6.11.11) for performance analysis
+\end{itemize}
+
 
 
 \subsection{Benchmark Workloads}
@@ -152,7 +148,7 @@ Benchmark workloads are chosen based on key criteria: representativeness, scalab
 
 \subsubsection{Synthetic 2D Convolutions}
 
-To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images:
+To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images \cite{Tousimojarad_Vanderbauwhede_Cockshott_2017}:
 
 \begin{itemize}
     \item \textbf{3$\times$3 kernel on 512$\times$512 image}: Fits entirely in L2/L3 cache, highlighting compute throughput and vectorization.
@@ -171,7 +167,7 @@ To evaluate the effects of cache reuse and two-pass access patterns, we implemen
     \item \textbf{Sobel edge detection (3$\times$3)} on a 2048$\times$2048 image: Applies horizontal and vertical filters in sequence, capturing the latency vs. throughput trade-off for small but memory-intensive operations.
 \end{itemize}
 
-These workloads are useful for studying temporal locality and synchronization overhead in multi-stage OpenMP implementations.
+These workloads are useful for studying temporal locality and synchronization overhead.
 
 \subsubsection{End-to-End Image Processing Pipelines}
 
@@ -190,7 +186,7 @@ All inputs are pseudo-random but deterministic to ensure reproducibility. Worklo
 
 \subsection{Measurement Methodology}
 
-To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{williams2009roofline, bhattacharjee2020analyzing, imran2022openmp, chen2021benchmarking}.
+To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{Gawrych2023-vu,  Rajput2013-qn,  Yoon2012-sx}.
 
 \vspace{0.5em}
 \textbf{1) Controlled Experimental Environment:} All benchmarks are run on a dedicated machine with minimal background activity. Turbo boost and dynamic frequency scaling are left enabled to reflect realistic performance, but measurements are conducted under stable thermal conditions.
@@ -205,15 +201,17 @@ To ensure accurate and reproducible performance results, our measurement methodo
 \textbf{4) Timer Accuracy:} Wall-clock execution time is measured, which ensures consistency across operating system and hardware configurations. Timing includes only the kernel execution, excluding I/O and setup phases, unless otherwise noted.
 
 \vspace{0.5em}
-\textbf{5) Scaling Experiments:} We conduct both strong and weak scaling evaluations. For strong scaling, problem size remains fixed while thread count increases from 1 to 16. For weak scaling, the workload size grows proportionally with thread count to assess parallel overhead and memory behavior.
+\textbf{5) Scaling Experiments:} 
+We conduct both strong and weak scaling evaluations. For strong scaling, problem size remains fixed while thread count increases from 1 to 16. For weak scaling, the workload size grows proportionally with thread count to assess parallel overhead and memory behavior. Results will be interpreted in light of Amdahl’s Law, which characterizes the theoretical limits of strong scaling \cite{hager2021hpc}, and Gustafson’s Law, which describes expected performance under weak scaling \cite{gustafson1988reevaluating}.
+
 
 \vspace{0.5em}
-\textbf{6) Profiling and Hardware Analysis:} Low-level profiling is conducted using \texttt{perf}. We collect metrics such as cycles, instructions, cache misses, branch mispredictions, and memory bandwidth utilization. These metrics help correlate runtime behavior with architectural bottlenecks and assess the effectiveness of OpenMP scheduling.
+\textbf{6) Profiling and Hardware Analysis:} Low-level profiling is conducted using \texttt{perf}. We collect metrics such as cycles, instructions, cache misses, branch mispredictions, and memory bandwidth utilization. These metrics help correlate runtime behavior with architectural bottlenecks and assess the effectiveness.
 
 
 \subsection{Performance Metrics and Plots}
 
-To accurately convey both quantitative performance gains and underlying computational behavior, our evaluation will employ a selected set of performance metrics and visualizations. These choices follow established best practices from prior research in high-performance convolution and parallel computing \cite{williams2009roofline, hager2011hpc, bhattacharjee2020analyzing, chen2021benchmarking, imran2022openmp}.
+To accurately convey both quantitative performance gains and underlying computational behavior, our evaluation will employ a selected set of performance metrics and visualizations. These choices follow established best practices from prior research in high-performance convolution and parallel computing \cite{Wang2023-ve,  hager2021hpc, Rajput2013-qn, Yoon2012-sx}.
 
 \vspace{0.5em}
 \textbf{1) Speedup and Efficiency:} 
@@ -225,36 +223,25 @@ and parallel efficiency as:
 \begin{equation}
     E(p) = \frac{S(p)}{p}
 \end{equation}
-where \(T(1)\) is the execution time of the sequential version and \(T(p)\) is the time with \(p\) threads. These metrics will be plotted against thread counts to evaluate scalability and identify diminishing returns due to overheads or contention \cite{bhattacharjee2020analyzing}.
+where \(T(1)\) is the execution time of the sequential version and \(T(p)\) is the time with \(p\) threads. These metrics will be plotted against thread counts to evaluate scalability and identify diminishing returns due to overheads or contention \cite{Rajput2013-qn}.
 
 \vspace{0.5em}
 \textbf{2) Throughput and Kernel Performance:} 
 We will report throughput in GFLOPS/s, defined by the theoretical number of floating-point operations in a convolution kernel divided by its execution time. This enables comparison with architectural peaks and identification of underutilization.
 
 \vspace{0.5em}
-\textbf{3) Roofline Analysis:} 
-To contextualize observed performance, we will generate roofline plots that depict the relationship between operational intensity and achieved performance. These plots highlight whether the kernel is compute- or memory-bound and allow benchmarking against theoretical bandwidth and compute limits \cite{williams2009roofline}.
-
-\vspace{0.5em}
 \textbf{4) Strong and Weak Scaling Curves:} 
-We will generate strong scaling plots (fixed input size) and weak scaling plots (input size grows with thread count) to evaluate the scalability of our implementation. These plots will reveal how overheads such as synchronization and memory bandwidth contention grow with scale \cite{hager2011hpc}.
+We will generate strong scaling plots (fixed input size) and weak scaling plots (input size grows with thread count) to evaluate the scalability of our implementation. These plots will reveal how overheads such as synchronization and memory bandwidth contention grow with scale \cite{hager2021hpc}.
 
 \vspace{0.5em}
 \textbf{5) Hardware Counter Visualizations:} 
-Using \texttt{perf stat}, we will collect metrics such as cycles, instructions retired, L1/L2/L3 cache miss rates, and memory bandwidth. These will be plotted as bar charts or line graphs to explain bottlenecks and guide future optimization, as demonstrated in \cite{chen2021benchmarking, imran2022openmp}.
+Using \texttt{perf}, we will collect metrics such as cycles, instructions retired, L1/L2/L3 cache miss rates, and memory bandwidth. These will be plotted as bar charts or line graphs to explain bottlenecks and guide future optimization, as demonstrated in \cite{Yoon2012-sx}.
 
 \vspace{0.5em}
 \textbf{6) Statistical Rigor:} 
-All plots will be annotated with error bars reflecting the standard deviation over 10 runs. This practice enhances the interpretability of results and supports reproducibility by conveying variability in runtime behavior \cite{chen2021benchmarking}.
+All plots will be annotated with error bars reflecting the standard deviation over 10 runs. This practice enhances the interpretability of results and supports reproducibility by conveying variability in runtime behavior \cite{Yoon2012-sx}.
 
 Our chosen metrics and visualizations aim to support a rigorous, transparent, and insightful analysis of parallel performance across all stages of implementation and testing.
-
-
-
-
-
-
-
 
 
 % ====================================================================
