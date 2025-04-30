@@ -12,12 +12,9 @@
 \usepackage{xcolor}
 \usepackage{url} % Needed for \url{} 
 
-% Optional: For code listings (choose one or use verbatim)
-% \usepackage{listings} 
-% \lstset{
-%   basicstyle=\footnotesize\ttfamily,
-%   breaklines=true,
-% }
+
+
+
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -25,7 +22,7 @@
 \begin{document}
 
 % --- Title Block ---
-\title{Accelerating Convolution Kernels on Multi-Core CPUs using OpenMP Parallelization}
+\title{Accelerating Convolution Kernels on Multi-Core CPUs using Parallel Programming}
 % --- AUTHORS ---
 \author{
     \IEEEauthorblockN{1\textsuperscript{st} [Student One Name]}
@@ -58,11 +55,11 @@
 
 % --- Abstract & Keywords ---
 \begin{abstract}
-Convolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. We employ profiling techniques to identify bottlenecks, apply OpenMP directives to parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, contextualized within the principles of automatic parallelization analysis.
+Convolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. We employ profiling techniques to identify bottlenecks, and parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, contextualized within the principles of automatic parallelization analysis.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Parallel Computing, OpenMP, Image Convolution, Image Processing, Performance Analysis, Multi-core CPU, Kernel Acceleration, Speedup, Scalability
+Parallel Computing, OpenMP, MPI, Image Convolution, Image Processing, Performance Analysis, Multi-core CPU, Kernel Acceleration, Speedup, Scalability
 \end{IEEEkeywords}
 
 % ====================================================================
@@ -71,8 +68,7 @@ Parallel Computing, OpenMP, Image Convolution, Image Processing, Performance Ana
 
 % --- Introduction ---
 \section{Introduction}
-\textit{{\color{blue} % Optional color for visibility
-[Convolution is a foundational operation in image processing and computer vision, 
+Convolution is a foundational operation in image processing and computer vision, 
 underpinning tasks such as edge detection, blurring, and feature extraction. It is also a core component in deep learning architectures. 
 Despite its importance, convolution is computationally intensive, particularly for high-resolution and multi-channel images, 
 due to its repeated access to neighboring pixels and large computational footprint.
@@ -95,13 +91,13 @@ Domain decomposition and thread parallelism techniques will then be applied, tai
 Each parallelization approach will then be implemented and benchmarked 
 to evaluate performance in terms of speedup, scalability, and efficiency.
 This work aims to provide insights into the trade-offs and benefits of distributed, shared-memory, and GPU-based parallelization techniques, 
-contributing to the broader understanding of high-performance computing in image processing.]
-}}
+contributing to the broader understanding of high-performance computing in image processing.
+
 
 % --- PROBLEM DEFINITION ---
 \section{Problem Definition}
 \textit{{\color{blue} % Optional color for visibility
-[Placeholder for Problem Definition: This section will precisely define the scope of the project. It will present the illustrative sequential image convolution kernel (e.g., Fig.~\ref{fig:seq_code}), explain its relevance, connect it to dependency analysis concepts (referencing \cite{idkfactchecking2025} where applicable), and clearly state the specific research problem and tasks: profile, analyze dependencies, parallelize using OpenMP, and evaluate. This placeholder text should be replaced with the actual content, including code figures.]
+[Placeholder for Problem Definition: This section will precisely define the scope of the project. It will present the illustrative sequential image convolution kernel (e.g., Fig.~\ref{fig:seq_code}), explain its relevance, connect it to dependency analysis concepts (referencing where applicable), and clearly state the specific research problem and tasks: profile, analyze dependencies, parallelize using OpenMP, and evaluate. This placeholder text should be replaced with the actual content, including code figures.]
 }}
 
 % Example Figure (referenced above, keep or adapt)
@@ -119,10 +115,129 @@ void sequential_convolve(...) {
 
 % --- EVALUATION PLAN ---
 \section{Proposed Evaluation}
-\textit{{\color{blue} % Optional color for visibility
-[Placeholder for Proposed Evaluation: This section will detail the methodology for evaluating the parallelized convolution kernel. It includes establishing the sequential baseline, verifying correctness, the benchmarking procedure (hardware, software environment, varying thread counts), key performance metrics (Execution Time, Speedup, Efficiency), planned benchmark inputs (images, kernels), and the criteria for success. This placeholder text should be replaced with the specific evaluation plan.
-\cite{hbdscientific2025}]
-}}
+
+\subsection{Hardware/Software Environment}
+
+\textbf{Hardware Platform.} The evaluation will be conducted on a system powered by an \textit{AMD Ryzen\texttrademark~9 5900HS} processor, featuring:
+\begin{itemize}
+    \item \textbf{CPU Configuration:} 1 socket $\times$ 8 physical cores $\times$ 2 threads/core = 16 logical threads
+    \item \textbf{Clock Speeds:} Base frequency of approximately 3.3~GHz, with turbo boost up to 4.68~GHz; SMT enabled
+    \item \textbf{Cache Hierarchy:} 16~MB shared L3, 4~MB L2 (512~KB/core), and 512~KB L1 cache
+    \item \textbf{Memory:} Dual-channel 16~GB DDR4 @ 3200~MHz (2$\times$8~GB SODIMM)
+    \item \textbf{Instruction Set Extensions:} AVX2, FMA, BMI2, AES-NI, SHA, and AMD-V for virtualization
+\end{itemize}
+This configuration is well-suited for high-throughput parallel workloads, multi-threaded compilation, and virtualized environments.
+
+\textbf{Software Stack.}
+\begin{itemize}
+    \item \textbf{Operating System:} Ubuntu 24.04.2 LTS with Linux kernel 6.11.0
+    \item \textbf{Compiler:} GNU GCC 13.3.0
+    \item \textbf{Profiler:} Linux \texttt{perf} utility (v6.11.11) for performance analysis
+\end{itemize}
+
+
+
+\subsection{Benchmark Workloads}
+
+Benchmark workloads are chosen based on key criteria: representativeness, scalability, memory/computation balance, reproducibility, and their suitability for multi-core evaluation. The goal is to probe both compute-bound and memory-bound behaviors across a range of image sizes and convolution configurations.
+
+\subsubsection{Synthetic 2D Convolutions}
+
+To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images \cite{Tousimojarad2017}:
+
+\begin{itemize}
+    \item \textbf{3$\times$3 kernel on 512$\times$512 image}: Fits entirely in L2/L3 cache, highlighting compute throughput and vectorization.
+    \item \textbf{5$\times$5 kernel on 1024$\times$1024 image}: Stresses shared L3 cache, revealing cache contention and reuse patterns.
+    \item \textbf{7$\times$7 kernel on 2048$\times$2048 image}: Exceeds cache capacity, measuring the impact of main memory access and bandwidth limits.
+\end{itemize}
+
+Each workload is evaluated under both strong and weak scaling: strong scaling fixes the total problem size while increasing thread count; weak scaling maintains constant work per thread as thread count grows.
+
+\subsubsection{Separable Filters}
+
+To evaluate the effects of cache reuse and two-pass access patterns, we implement separable convolutions:
+
+\begin{itemize}
+    \item \textbf{Gaussian 5$\times$5 (separable)} on a 1024$\times$1024 image: Each 1D pass is parallelized independently, testing inter-pass synchronization and cache locality.
+    \item \textbf{Sobel edge detection (3$\times$3)} on a 2048$\times$2048 image: Applies horizontal and vertical filters in sequence, capturing the latency vs. throughput trade-off for small but memory-intensive operations.
+\end{itemize}
+
+These workloads are useful for studying temporal locality and synchronization overhead.
+
+\subsubsection{End-to-End Image Processing Pipelines}
+
+To simulate realistic usage scenarios, we implement a three-stage filter pipeline:
+
+\begin{itemize}
+    \item \textbf{Pipeline: Gaussian blur $\rightarrow$ Sharpen $\rightarrow$ Edge detection}
+    \begin{itemize}
+        \item \textbf{on 4096$\times$2160 (4K) image}: Fits within main memory but exceeds shared cache. Evaluates performance on typical high-resolution input.
+        \item \textbf{on 8192$\times$4608 (8K) image}: High-throughput scenario stressing memory bandwidth and thread scheduling efficiency. Tests tiling and thread binding strategies.
+    \end{itemize}
+\end{itemize}
+
+All inputs are pseudo-random but deterministic to ensure reproducibility. Workload configurations are executed using 1 to 16 threads to investigate both physical core utilization and the effect of simultaneous multithreading (SMT).
+
+
+\subsection{Measurement Methodology}
+
+To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{Gawrych2023,  Rajput2013,  Yoon2012}.
+
+\vspace{0.5em}
+\textbf{1) Controlled Experimental Environment:} All benchmarks are run on a dedicated machine with minimal background activity. Turbo boost and dynamic frequency scaling are left enabled to reflect realistic performance, but measurements are conducted under stable thermal conditions.
+
+\vspace{0.5em}
+\textbf{2) Baseline Definition:} The sequential reference implementation is compiled with identical optimization flags as its parallel counterparts (\texttt{-O3}), and evaluated using the same input datasets. This ensures that any measured speedup reflects true parallel efficiency and not variation in compilation or execution environment.
+
+\vspace{0.5em}
+\textbf{3) Repeatability and Statistical Significance:} Each experiment is run 10 times after 3 warm-up iterations. The reported execution time is the arithmetic mean of the valid runs. We also calculate and report the standard deviation to capture runtime variability.
+
+\vspace{0.5em}
+\textbf{4) Timer Accuracy:} Wall-clock execution time is measured, which ensures consistency across operating system and hardware configurations. Timing includes only the kernel execution, excluding I/O and setup phases, unless otherwise noted.
+
+\vspace{0.5em}
+\textbf{5) Scaling Experiments:} 
+We conduct both strong and weak scaling evaluations. For strong scaling, problem size remains fixed while thread count increases from 1 to 16. For weak scaling, the workload size grows proportionally with thread count to assess parallel overhead and memory behavior. Results will be interpreted in light of Amdahl’s Law, which characterizes the theoretical limits of strong scaling \cite{hager2021hpc}, and Gustafson’s Law, which describes expected performance under weak scaling \cite{Gustafson1988}.
+
+
+\vspace{0.5em}
+\textbf{6) Profiling and Hardware Analysis:} Low-level profiling is conducted using \texttt{perf}. We collect metrics such as cycles, instructions, cache misses, branch mispredictions, and memory bandwidth utilization. These metrics help correlate runtime behavior with architectural bottlenecks and assess the effectiveness.
+
+
+\subsection{Performance Metrics and Plots}
+
+To accurately convey both quantitative performance gains and underlying computational behavior, our evaluation will employ a selected set of performance metrics and visualizations. These choices follow established best practices from prior research in high-performance convolution and parallel computing \cite{Wang2023,  hager2021hpc, Rajput2013, Yoon2012}.
+
+\vspace{0.5em}
+\textbf{1) Speedup and Efficiency:} 
+We will compute speedup as:
+\begin{equation}
+    S(p) = \frac{T(1)}{T(p)}
+\end{equation}
+and parallel efficiency as:
+\begin{equation}
+    E(p) = \frac{S(p)}{p}
+\end{equation}
+where \(T(1)\) is the execution time of the sequential version and \(T(p)\) is the time with \(p\) threads. These metrics will be plotted against thread counts to evaluate scalability and identify diminishing returns due to overheads or contention \cite{Rajput2013}.
+
+\vspace{0.5em}
+\textbf{2) Throughput and Kernel Performance:} 
+We will report throughput in GFLOPS/s, defined by the theoretical number of floating-point operations in a convolution kernel divided by its execution time. This enables comparison with architectural peaks and identification of underutilization.
+
+\textbf{4) Strong and Weak Scaling Curves:} 
+We will generate strong scaling plots (fixed input size) and weak scaling plots (input size grows with thread count) to evaluate the scalability of our implementation. These plots will reveal how overheads such as synchronization and memory bandwidth contention grow with scale; their behavior will be interpreted in light of Amdahl’s Law and Gustafson’s Law as described in Section~3.3 \cite{hager2021hpc, Gustafson1988}.
+
+\vspace{0.5em}
+\textbf{5) Hardware Counter Visualizations:} 
+Using \texttt{perf}, we will collect metrics such as cycles, instructions retired, L1/L2/L3 cache miss rates, and memory bandwidth. These will be plotted as bar charts or line graphs to explain bottlenecks and guide future optimization, as demonstrated in \cite{Yoon2012}.
+
+\vspace{0.5em}
+\textbf{6) Statistical Rigor:} 
+All plots will be annotated with error bars reflecting the standard deviation over 10 runs. This practice enhances the interpretability of results and supports reproducibility by conveying variability in runtime behavior \cite{Yoon2012}.
+
+Our chosen metrics and visualizations aim to support a rigorous, transparent, and insightful analysis of parallel performance across all stages of implementation and testing.
+
+
 
 
 
