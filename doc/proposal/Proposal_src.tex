@@ -118,11 +118,140 @@ void sequential_convolve(...) {
 
 
 % --- EVALUATION PLAN ---
+% --- EVALUATION PLAN ---
 \section{Proposed Evaluation}
-\textit{{\color{blue} % Optional color for visibility
-[Placeholder for Proposed Evaluation: This section will detail the methodology for evaluating the parallelized convolution kernel. It includes establishing the sequential baseline, verifying correctness, the benchmarking procedure (hardware, software environment, varying thread counts), key performance metrics (Execution Time, Speedup, Efficiency), planned benchmark inputs (images, kernels), and the criteria for success. This placeholder text should be replaced with the specific evaluation plan.
-\cite{hbdscientific2025}]
-}}
+
+\subsection{Experimental Environment}
+
+\begin{table}[h!]
+\centering
+\caption{Experimental Environment Configuration}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Component} & \textbf{Specification} \\
+\hline
+Processor & AMD Ryzen\texttrademark~9 5900HS \\
+Cores / Threads & 8 cores / 16 threads (SMT-enabled) \\
+Base / Boost Clock & 3.3~GHz / 4.68~GHz \\
+Cache & L1: 512~KB, L2: 4~MB, L3: 16~MB \\
+Memory & 16~GB DDR4-3200 (Dual-channel) \\
+Memory Bandwidth & Up to 51.2~GB/s \\
+Operating System & Ubuntu 24.04.2 LTS \\
+Kernel Version & Linux 6.11.0 \\
+Compiler & GCC 13.3.0 \\
+Profiler & \texttt{perf} v6.11.11 \\
+\hline
+\end{tabular}
+\label{tab:exp-env}
+\end{table}
+
+
+\subsection{Benchmark Workloads}
+
+Benchmark workloads are chosen based on key criteria: representativeness, scalability, memory/computation balance, reproducibility, and their suitability for multi-core evaluation. The goal is to probe both compute-bound and memory-bound behaviors across a range of image sizes and convolution configurations.
+
+\subsubsection{Synthetic 2D Convolutions}
+
+To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images:
+
+\begin{itemize}
+    \item \textbf{3$\times$3 kernel on 512$\times$512 image}: Fits entirely in L2/L3 cache, highlighting compute throughput and vectorization.
+    \item \textbf{5$\times$5 kernel on 1024$\times$1024 image}: Stresses shared L3 cache, revealing cache contention and reuse patterns.
+    \item \textbf{7$\times$7 kernel on 2048$\times$2048 image}: Exceeds cache capacity, measuring the impact of main memory access and bandwidth limits.
+\end{itemize}
+
+Each workload is evaluated under both strong and weak scaling: strong scaling fixes the total problem size while increasing thread count; weak scaling maintains constant work per thread as thread count grows.
+
+\subsubsection{Separable Filters}
+
+To evaluate the effects of cache reuse and two-pass access patterns, we implement separable convolutions:
+
+\begin{itemize}
+    \item \textbf{Gaussian 5$\times$5 (separable)} on a 1024$\times$1024 image: Each 1D pass is parallelized independently, testing inter-pass synchronization and cache locality.
+    \item \textbf{Sobel edge detection (3$\times$3)} on a 2048$\times$2048 image: Applies horizontal and vertical filters in sequence, capturing the latency vs. throughput trade-off for small but memory-intensive operations.
+\end{itemize}
+
+These workloads are useful for studying temporal locality and synchronization overhead in multi-stage OpenMP implementations.
+
+\subsubsection{End-to-End Image Processing Pipelines}
+
+To simulate realistic usage scenarios, we implement a three-stage filter pipeline:
+
+\begin{itemize}
+    \item \textbf{Pipeline: Gaussian blur $\rightarrow$ Sharpen $\rightarrow$ Edge detection}
+    \begin{itemize}
+        \item \textbf{on 4096$\times$2160 (4K) image}: Fits within main memory but exceeds shared cache. Evaluates performance on typical high-resolution input.
+        \item \textbf{on 8192$\times$4608 (8K) image}: High-throughput scenario stressing memory bandwidth and thread scheduling efficiency. Tests tiling and thread binding strategies.
+    \end{itemize}
+\end{itemize}
+
+All inputs are pseudo-random but deterministic to ensure reproducibility. Workload configurations are executed using 1 to 16 threads to investigate both physical core utilization and the effect of simultaneous multithreading (SMT).
+
+
+\subsection{Measurement Methodology}
+
+To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{williams2009roofline, bhattacharjee2020analyzing, imran2022openmp, chen2021benchmarking}.
+
+\vspace{0.5em}
+\textbf{1) Controlled Experimental Environment:} All benchmarks are run on a dedicated machine with minimal background activity. Turbo boost and dynamic frequency scaling are left enabled to reflect realistic performance, but measurements are conducted under stable thermal conditions.
+
+\vspace{0.5em}
+\textbf{2) Baseline Definition:} The sequential reference implementation is compiled with identical optimization flags as its parallel counterparts (\texttt{-O3}), and evaluated using the same input datasets. This ensures that any measured speedup reflects true parallel efficiency and not variation in compilation or execution environment.
+
+\vspace{0.5em}
+\textbf{3) Repeatability and Statistical Significance:} Each experiment is run 10 times after 3 warm-up iterations. The reported execution time is the arithmetic mean of the valid runs. We also calculate and report the standard deviation to capture runtime variability.
+
+\vspace{0.5em}
+\textbf{4) Timer Accuracy:} Wall-clock execution time is measured, which ensures consistency across operating system and hardware configurations. Timing includes only the kernel execution, excluding I/O and setup phases, unless otherwise noted.
+
+\vspace{0.5em}
+\textbf{5) Scaling Experiments:} We conduct both strong and weak scaling evaluations. For strong scaling, problem size remains fixed while thread count increases from 1 to 16. For weak scaling, the workload size grows proportionally with thread count to assess parallel overhead and memory behavior.
+
+\vspace{0.5em}
+\textbf{6) Profiling and Hardware Analysis:} Low-level profiling is conducted using \texttt{perf}. We collect metrics such as cycles, instructions, cache misses, branch mispredictions, and memory bandwidth utilization. These metrics help correlate runtime behavior with architectural bottlenecks and assess the effectiveness of OpenMP scheduling.
+
+
+\subsection{Performance Metrics and Plots}
+
+To accurately convey both quantitative performance gains and underlying computational behavior, our evaluation will employ a selected set of performance metrics and visualizations. These choices follow established best practices from prior research in high-performance convolution and parallel computing \cite{williams2009roofline, hager2011hpc, bhattacharjee2020analyzing, chen2021benchmarking, imran2022openmp}.
+
+\vspace{0.5em}
+\textbf{1) Speedup and Efficiency:} 
+We will compute speedup as:
+\begin{equation}
+    S(p) = \frac{T(1)}{T(p)}
+\end{equation}
+and parallel efficiency as:
+\begin{equation}
+    E(p) = \frac{S(p)}{p}
+\end{equation}
+where \(T(1)\) is the execution time of the sequential version and \(T(p)\) is the time with \(p\) threads. These metrics will be plotted against thread counts to evaluate scalability and identify diminishing returns due to overheads or contention \cite{bhattacharjee2020analyzing}.
+
+\vspace{0.5em}
+\textbf{2) Throughput and Kernel Performance:} 
+We will report throughput in GFLOPS/s, defined by the theoretical number of floating-point operations in a convolution kernel divided by its execution time. This enables comparison with architectural peaks and identification of underutilization.
+
+\vspace{0.5em}
+\textbf{3) Roofline Analysis:} 
+To contextualize observed performance, we will generate roofline plots that depict the relationship between operational intensity and achieved performance. These plots highlight whether the kernel is compute- or memory-bound and allow benchmarking against theoretical bandwidth and compute limits \cite{williams2009roofline}.
+
+\vspace{0.5em}
+\textbf{4) Strong and Weak Scaling Curves:} 
+We will generate strong scaling plots (fixed input size) and weak scaling plots (input size grows with thread count) to evaluate the scalability of our implementation. These plots will reveal how overheads such as synchronization and memory bandwidth contention grow with scale \cite{hager2011hpc}.
+
+\vspace{0.5em}
+\textbf{5) Hardware Counter Visualizations:} 
+Using \texttt{perf stat}, we will collect metrics such as cycles, instructions retired, L1/L2/L3 cache miss rates, and memory bandwidth. These will be plotted as bar charts or line graphs to explain bottlenecks and guide future optimization, as demonstrated in \cite{chen2021benchmarking, imran2022openmp}.
+
+\vspace{0.5em}
+\textbf{6) Statistical Rigor:} 
+All plots will be annotated with error bars reflecting the standard deviation over 10 runs. This practice enhances the interpretability of results and supports reproducibility by conveying variability in runtime behavior \cite{chen2021benchmarking}.
+
+Our chosen metrics and visualizations aim to support a rigorous, transparent, and insightful analysis of parallel performance across all stages of implementation and testing.
+
+
+
+
 
 
 
