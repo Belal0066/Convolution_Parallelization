@@ -1,1 +1,448 @@
+% --- START OF FILE proposal.tex ---
 
+% Ensure 10pt font size is specified
+\documentclass[conference, 10pt]{IEEEtran} 
+
+% --- Preamble (Packages, etc.) ---
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx} % Needed for including figures
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url} % Needed for \url{} 
+
+
+
+
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+\begin{document}
+
+% --- Title Block ---
+\title{Accelerating Convolution Kernels on Multi-Core CPUs using Parallel Programming}
+% --- AUTHORS ---
+\author{
+    \IEEEauthorblockN{1\textsuperscript{st} Belal Anas Awad}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    21p0072@eng.asu.edu.eg}
+\and
+    \IEEEauthorblockN{2\textsuperscript{nd} Mohamed Salah Fathy}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    21p0117@eng.asu.edu.eg}
+\and
+    \IEEEauthorblockN{3\textsuperscript{rd} Salma Mohamed Youssef}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    21p0148@eng.asu.edu.eg}
+\and
+    \IEEEauthorblockN{4\textsuperscript{th} Salma Hisham Hassan Wagdy}
+    \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
+    \textit{Faculty of Engineering, Ain Shams University}\\
+    Cairo, Egypt \\
+    21p0124@eng.asu.edu.eg}
+}
+
+
+\maketitle 
+
+% --- Abstract & Keywords ---
+\begin{abstract}
+Convolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. 
+This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. 
+We employ profiling techniques to identify bottlenecks, 
+and parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. 
+The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, 
+contextualized within the principles of automatic parallelization analysis.
+y comparing serial and parallel implementations, we demonstrate the significant performance improvements achievable through parallel programming techniques. Using OpenMP and MPI, we achieve notable speedup and scalability, highlighting the effectiveness of shared-memory and distributed-memory parallelization. 
+\end{abstract}
+
+\begin{IEEEkeywords}
+Parallel Computing, OpenMP, MPI, Image Convolution, Image Processing, Performance Analysis, Multi-core CPU, Kernel Acceleration, Speedup, Scalability
+\end{IEEEkeywords}
+
+% ====================================================================
+% --- MAIN PROPOSAL CONTENT STARTS HERE ---
+% ====================================================================
+
+% --- Introduction ---
+\section{Introduction}
+Convolution is a foundational operation in image processing and computer vision, 
+underpinning tasks such as edge detection, blurring, and feature extraction. It is also a core component in deep learning architectures. 
+Despite its importance, convolution is computationally intensive, particularly for high-resolution and multi-channel images, 
+due to its repeated access to neighboring pixels and large computational footprint.
+Sequential implementations of convolution, while straightforward, are inherently inefficient on modern multi-core CPUs. 
+They underutilize the available parallel hardware, leading to increased processing time and energy consumption. 
+This inefficiency arises from the inability of sequential code to exploit the concurrency offered by multi-core architectures.
+As a result, there is a pressing need for parallelization to fully leverage the computational power of modern hardware. 
+Automatic parallelization offers a promising solution by transforming sequential code into parallel code with minimal programmer intervention. 
+This process relies on static or dynamic code analysis to identify parallelizable sections,
+divide workloads, and coordinate execution across computing resources. 
+However, automatic parallelization remains non-trivial due to challenges such as data dependencies, 
+load balancing, and communication overhead \cite{hager2021hpc}.
+To address these challenges, this project implements and compares three parallelization approaches 
+for accelerating sequential 2D convolution kernels using: 
+(1) MPI for distributed memory parallelization\cite{toth2016convolution}. 
+(2) Combining MPI with OpenMP to leverage both inter-process and intra-process parallelism, improving thread-level concurrency.
+MPI enables efficient communication and workload distribution across processes, 
+while OpenMP facilitates shared-memory parallelism within nodes \cite{farber2011openmp}. 
+(3) Leveraging CUDA for GPU-based acceleration,
+capitalizing on massive thread-level parallelism available in modern GPUs \cite{nvidia2021cuda}.
+We begin by profiling the sequential code to identify bottlenecks. 
+Domain decomposition and thread parallelism techniques will then be applied, tailored to each architecture. 
+Each parallelization approach will then be implemented and benchmarked 
+to evaluate performance in terms of speedup, scalability, and efficiency.
+This work aims to provide insights into the trade-offs and benefits of distributed, shared-memory, and GPU-based parallelization techniques, 
+contributing to the broader understanding of high-performance computing in image processing.
+
+
+\section{Related Work}
+
+
+
+
+\section{Proposed Solution}
+
+\subsection{MPI Implementation}
+
+
+
+
+
+
+
+
+
+\subsection{Hybrid MPI + OpenMP Implementation}
+\subsubsection{Overview}
+The hybrid MPI + OpenMP implementation combines distributed-memory parallelism (MPI) with shared-memory parallelism (OpenMP) 
+to efficiently accelerate the convolution operation. 
+This approach leverages MPI for inter-process communication and workload distribution across multiple nodes, 
+while OpenMP is used to exploit thread-level parallelism within each node. 
+By combining these two paradigms, the implementation achieves both scalability across distributed systems 
+and efficient utilization of multi-core CPUs within each node.
+
+\subsubsection{Key Implementation Components}
+1. \textbf{Workload Distribution with MPI:}
+\begin{itemize}
+
+\item The image is divided into blocks, with each block assigned to a process. 
+The division is performed using a row-column decomposition strategy to minimize communication overhead.
+\item Each process is responsible for a subset of rows and columns to handle boundary conditions during convolution.
+\item MPI is used to exchange boundary data between neighboring processes using non-blocking communication (\textbf{MPI_Isend} and textbf{MPI_Irecv}).
+\end{itemize}
+
+2. \textbf{Shared-Memory Parallelism with OpenMP:}
+\begin{itemize}
+
+\item Within each process, OpenMP is used to parallelize the convolution operation across multiple threads.
+\item The convolution loops are parallelized using \textbf{#pragma omp parallel for}, with the \textbf{collapse} clause applied to nested loops for better load balancing.
+\item OpenMP sections (\textbf{#pragma omp sections}) are used to overlap computation and communication, ensuring efficient utilization of CPU resources.
+\end{itemize}
+
+3. \textbf{Boundary Communication:}
+
+\begin{itemize}
+
+\item Processes exchange boundary rows and columns with their neighbors (north, south, east, west) to ensure correct convolution results at the edges of their assigned blocks.
+\item Non-blocking MPI communication allows computation to proceed while waiting for data from neighboring processes.
+\end{itemize}
+
+4. \textbf{Convolution Operation:}
+\begin{itemize}
+
+\item The convolution is performed using the \textbf{convolute} function, which applies the filter to each pixel in the assigned block.
+\item Separate functions (\textbf{convolute_grey} and \textbf{convolute_rgb}) handle grayscale and RGB images, respectively.
+\item OpenMP parallelism is applied to the inner loops of the convolution operation to maximize thread-level concurrency.
+
+5. \textbf{File I/O:}
+\begin{itemize}
+    \item MPI I/O is used for parallel reading and writing of the image file. Each process reads and writes only its assigned portion of the image, reducing I/O overhead.
+\end{itemize}
+
+
+
+\subsubsection{Advantages of the Hybrid Approach}
+
+\begin{itemize}
+    
+    \item \textbf{Efficient Resource Utilization:} 
+    \begin{itemize}
+    
+    \item OpenMP ensures that all CPU cores within a node are utilized, reducing idle time and improving performance.
+
+    \end{itemize}
+    
+
+    \item \textbf{Reduced Communication Overhead:} 
+    \begin{itemize}
+    
+    \item By combining MPI and OpenMP, the amount of inter-process communication is minimized, as threads within a process share memory and do not require communication.
+    \end{itemize}
+    \item \textbf{Overlapping Computation and Communication:} 
+    \begin{itemize}
+    \item The use of OpenMP sections allows computation to proceed while waiting for boundary data, improving overall efficiency.
+    \end{itemize}
+
+    \item \textbf{Scalability:} 
+    \begin{itemize}
+    \item Similar to the previous implementation MPI enables the implementation to scale across multiple nodes in a distributed system, making it suitable for processing large images.
+    \end{itemize}
+
+
+\subsubsection{Challenges Addressed}
+\begin{itemize}
+ \item   \textbf{Data Dependencies:}
+        \begin{itemize}
+        \item Halo regions are used to handle dependencies between neighboring blocks during convolution.
+        \end{itemize}
+
+\item \textbf{Load Balancing:}
+        \begin{itemize}
+        \item The row-column decomposition ensures that workloads are evenly distributed among processes.
+        \end{itemize}
+\item \textbf{Communication Overhead:}
+        \begin{itemize}
+        \item Non-blocking MPI communication and overlapping computation with OpenMP sections mitigate the impact of communication delays.
+        \end{itemize}
+
+\end{itemize}
+
+\subsubsection{Implementation details}
+
+\begin{itemize}
+    \item \textbf{MPI Initialization:} 
+    \begin{itemize}
+        \item The MPI environment is initialized and the number of processes and their ranks are determined.
+        \item The input image is read and its dimensions and other parameters are distributed among processes using .
+    \end{itemize}
+    \item \textbf{Parallel Convolution:}
+    \begin{itemize}
+        \item Each process performs the convolution on its assigned block using OpenMP for thread-level parallelism.
+        \item Boundary data is exchanged between processes at each iteration.
+    \end{itemize}
+
+    \item \textbf{Final Output:}
+    \begin{itemize}
+        \item After completing the convolution, The final output is gathered from all processes and written to the output file.
+        \item And finally MPI environment is finalized.
+    \end{itemize}
+\end{itemize}
+
+
+
+\subsection{CUDA Implementation}
+
+
+
+
+
+
+
+\section{Evaluation and Results}
+
+
+
+
+
+\section{Conclusion and Future Work}
+
+
+
+
+
+
+% --- PROBLEM DEFINITION ---
+\section{Problem Definition}
+
+\subsection{The Convolution Operation}
+A convolution operation involves the following detailed steps:
+
+\begin{itemize}
+    \item \textbf{Filter Definition:} A small matrix (typically 3×3 or 5×5) is defined as the convolutional kernel.
+    \item \textbf{Kernel Traversal:} This kernel moves systematically across the input image from left-to-right and top-to-bottom.
+    \item \textbf{Dot Product Computation:} At each location:
+    \begin{enumerate}
+        \item The kernel is aligned with a portion of the image.
+        \item Element-wise multiplication is performed between kernel values and corresponding image pixels.
+        \item All products are summed to produce a single output value.
+    \end{enumerate}
+    \item \textbf{Feature Map Formation:} The results of these computations form a new matrix representing transformed features of the original image.
+\end{itemize}
+
+\subsection{Convolution in CNNs}
+Convolutional Neural Networks (CNNs) utilize multiple convolutional layers combined with traditional neural network layers. The hierarchical feature extraction process occurs as follows:
+
+\begin{itemize}
+    \item \textbf{Layer Progression:}
+    \begin{itemize}
+        \item Initial layers detect basic features (edges, textures).
+        \item Intermediate layers combine these into more complex patterns.
+        \item Final layers identify complete components (e.g., facial features, object parts).
+    \end{itemize}
+    \item \textbf{Implementation Steps:}
+    \begin{enumerate}
+        \item Kernel alignment at the top-left image pixel.
+        \item Precise element-wise multiplication between kernel and image region.
+        \item Aggregation of products into a feature map pixel.
+        \item Systematic repetition across the entire image with specified stride.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Parallelization Approaches}
+\subsubsection{Data Parallelism}
+Data parallelism is a powerful technique where the same operation (like convolution) is performed on different parts of data simultaneously.
+
+\begin{itemize}
+    \item \textbf{Implementation Steps:}
+    \begin{enumerate}
+        \item \textbf{Partition the input data into smaller chunks (e.g., image tiles):} Each block will be assigned to a thread/process.
+        \item \textbf{Apply Convolution in Parallel:} Each thread applies the same kernel on its data block. Since output at each location is independent, there's no data race.
+        \item Each unit performs the convolution operation independently on its assigned chunk.
+        \item \textbf{Synchronize or Merge Results:} In shared-memory systems (OpenMP, CUDA), threads write to separate output buffers — minimal sync needed. In distributed systems (MPI), use \texttt{MPI\_Gather} or \texttt{MPI\_Reduce} to merge partial outputs.
+    \end{enumerate}
+    \item \textbf{Advantages:}
+    \begin{itemize}
+        \item \textbf{Increased Speed:} Each thread or processing unit handles a portion of data, reducing execution time.
+        \item \textbf{Scalability:} Works efficiently on multi-core CPUs, GPUs, and clusters (via MPI).
+        \item \textbf{Simplicity:} You replicate the same logic across data chunks — easier to manage and debug.
+        \item \textbf{Reduced Memory Bottleneck:} Localized data access patterns improve cache utilization and memory access speeds.
+        \item \textbf{Portability:} Data parallelism can be implemented with OpenMP (CPU), CUDA (GPU), or MPI (distributed).
+    \end{itemize}
+\end{itemize}
+
+
+
+
+
+% --- EVALUATION PLAN ---
+\section{Proposed Evaluation}
+
+\subsection{\textbf{Hardware/Software Environment}}
+
+\textbf{Hardware Platform.} The evaluation will be conducted on a system powered by an \textit{AMD Ryzen\texttrademark~9 5900HS} processor, featuring:
+\begin{itemize}
+    \item \textbf{CPU Configuration:} 1 socket $\times$ 8 physical cores $\times$ 2 threads/core = 16 logical threads
+    \item \textbf{Clock Speeds:} Base frequency of approximately 3.3~GHz, with turbo boost up to 4.68~GHz; SMT enabled
+    \item \textbf{Cache Hierarchy:} 16~MB shared L3, 4~MB L2 (512~KB/core), and 512~KB L1 cache
+    \item \textbf{Memory:} Dual-channel 16~GB DDR4 @ 3200~MHz (2$\times$8~GB SODIMM)
+    \item \textbf{Instruction Set Extensions:} AVX2, FMA, BMI2, AES-NI, SHA, and AMD-V for virtualization
+\end{itemize}
+This configuration is well-suited for high-throughput parallel workloads, multi-threaded compilation, and virtualized environments.
+
+\textbf{Software Stack.}
+\begin{itemize}
+    \item \textbf{Operating System:} Ubuntu 24.04.2 LTS with Linux kernel 6.11.0
+    \item \textbf{Compiler:} GNU GCC 13.3.0
+    \item \textbf{Profiler:} Linux \texttt{perf} utility (v6.11.11) for performance analysis
+\end{itemize}
+
+
+
+\subsection{\textbf{Benchmark Workloads}}
+
+Benchmark workloads are chosen based on key criteria: representativeness, scalability, memory/computation balance, reproducibility, and their suitability for multi-core evaluation. The goal is to probe both compute-bound and memory-bound behaviors across a range of image sizes and convolution configurations.
+
+\subsubsection{\textbf{Synthetic 2D Convolutions}}
+
+To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images \cite{Tousimojarad2017}.
+
+
+\subsubsection{\textbf{Separable Filters}}
+
+To evaluate the effects of cache reuse and two-pass access patterns, we implement separable convolutions.
+
+
+
+\subsubsection{\textbf{End-to-End Image Processing Pipelines}}
+
+To simulate realistic usage scenarios, we implement a three-stage filter pipeline.
+
+
+
+\subsection{\textbf{Measurement Methodology}}
+
+To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{Gawrych2023,  Rajput2013,  Yoon2012}.
+
+\vspace{0.5em}
+\textbf{1) Controlled Experimental Environment:} All benchmarks are run on a dedicated machine with minimal background activity. Turbo boost and dynamic frequency scaling are left enabled to reflect realistic performance, but measurements are conducted under stable thermal conditions.
+
+\vspace{0.5em}
+\textbf{2) Baseline Definition:} The sequential reference implementation is compiled with identical optimization flags as its parallel counterparts (\texttt{-O3}), and evaluated using the same input datasets. This ensures that any measured speedup reflects true parallel efficiency and not variation in compilation or execution environment.
+
+\vspace{0.5em}
+\textbf{3) Repeatability and Statistical Significance:} Each experiment is run 10 times after 3 warm-up iterations. The reported execution time is the arithmetic mean of the valid runs. We also calculate and report the standard deviation to capture runtime variability.
+
+\vspace{0.5em}
+\textbf{4) Timer Accuracy:} Wall-clock execution time is measured, which ensures consistency across operating system and hardware configurations. Timing includes only the kernel execution, excluding I/O and setup phases, unless otherwise noted.
+
+\vspace{0.5em}
+\textbf{5) Scaling Experiments:} 
+We conduct both strong and weak scaling evaluations. For strong scaling, problem size remains fixed while thread count increases from 1 to 16. For weak scaling, the workload size grows proportionally with thread count to assess parallel overhead and memory behavior. Results will be interpreted in light of Amdahl’s Law, which characterizes the theoretical limits of strong scaling \cite{hager2021hpc}, and Gustafson’s Law, which describes expected performance under weak scaling \cite{Gustafson1988}.
+
+
+\vspace{0.5em}
+\textbf{6) Profiling and Hardware Analysis:} Low-level profiling is conducted using \texttt{perf}. We collect metrics such as cycles, instructions, cache misses, branch mispredictions, and memory bandwidth utilization. These metrics help correlate runtime behavior with architectural bottlenecks and assess the effectiveness.
+
+
+\subsection{\textbf{Performance Metrics and Plots}}
+
+To accurately convey both quantitative performance gains and underlying computational behavior, our evaluation will employ a selected set of performance metrics and visualizations. These choices follow established best practices from prior research in high-performance convolution and parallel computing \cite{Wang2023,  hager2021hpc, Rajput2013, Yoon2012}.
+
+\vspace{0.5em}
+\textbf{1) Speedup and Efficiency:} 
+We will compute speedup as:
+\begin{equation}
+    S(p) = \frac{T(1)}{T(p)}
+\end{equation}
+and parallel efficiency as:
+\begin{equation}
+    E(p) = \frac{S(p)}{p}
+\end{equation}
+where \(T(1)\) is the execution time of the sequential version and \(T(p)\) is the time with \(p\) threads. These metrics will be plotted against thread counts to evaluate scalability and identify diminishing returns due to overheads or contention \cite{Rajput2013}.
+
+\vspace{0.5em}
+\textbf{2) Throughput and Kernel Performance:} 
+We will report throughput in GFLOPS/s, defined by the theoretical number of floating-point operations in a convolution kernel divided by its execution time. This enables comparison with architectural peaks and identification of underutilization.
+
+\textbf{4) Strong and Weak Scaling Curves:} 
+We will generate strong scaling plots (fixed input size) and weak scaling plots (input size grows with thread count) to evaluate the scalability of our implementation. These plots will reveal how overheads such as synchronization and memory bandwidth contention grow with scale; their behavior will be interpreted in light of Amdahl’s Law and Gustafson’s Law as described in Section~3.3 \cite{hager2021hpc, Gustafson1988}.
+
+\vspace{0.5em}
+\textbf{5) Hardware Counter Visualizations:} 
+Using \texttt{perf}, we will collect metrics such as cycles, instructions retired, L1/L2/L3 cache miss rates, and memory bandwidth. These will be plotted as bar charts or line graphs to explain bottlenecks and guide future optimization, as demonstrated in \cite{Yoon2012}.
+
+\vspace{0.5em}
+\textbf{6) Statistical Rigor:} 
+All plots will be annotated with error bars reflecting the standard deviation over 10 runs. This practice enhances the interpretability of results and supports reproducibility by conveying variability in runtime behavior \cite{Yoon2012}.
+
+Our chosen metrics and visualizations aim to support a rigorous, transparent, and insightful analysis of parallel performance across all stages of implementation and testing.
+
+
+
+
+
+
+% ====================================================================
+% --- END OF MAIN PROPOSAL CONTENT ---
+% ====================================================================
+
+
+\section*{Acknowledgment} 
+% Add acknowledgments
+We thank Dr. Islam Tharwat Abdel Halim and Eng. Hassan Ahmed for their guidance.
+
+
+% --- Bibliography Setup (Keep these lines) ---
+\bibliographystyle{IEEEtran} 
+\bibliography{references} % file is references.bib
+
+\end{document}
+% --- END OF FILE proposal.tex ---
