@@ -100,6 +100,8 @@ int main(int argc, char** argv) {
 	float **h = malloc(3 * sizeof(float *));
 	for (i = 0 ; i < 3 ; i++)
 		h[i] = malloc(3 * sizeof(float));
+
+    #pragma omp parallel for collapse(2)
 	for (i = 0 ; i < 3 ; i++) {
 		for (j = 0 ; j < 3 ; j++){
 			// h[i][j] = box_blur[i][j] / 9.0;
@@ -203,20 +205,25 @@ int main(int argc, char** argv) {
 		convolute(src, dst, 1, rows, 1, cols, cols, rows, h, imageType);
 
 	    /* Request and compute */
+        #pragma omp parallel sections
 		if (north != -1) {
+             #pragma omp section
 			MPI_Wait(&recv_north_req, &status);
 			
 			convolute(src, dst, 1, 1, 2, cols-1, cols, rows, h, imageType);
 		}
 		if (west != -1) {
+             #pragma omp section
 			MPI_Wait(&recv_west_req, &status);
 			convolute(src, dst, 2, rows-1, 1, 1, cols, rows, h, imageType);
 		}
 		if (south != -1) {
+             #pragma omp section
 			MPI_Wait(&recv_south_req, &status);
 			convolute(src, dst, rows, rows, 2, cols-1, cols, rows, h, imageType);
 		}
 		if (east != -1) {
+             #pragma omp section
 			MPI_Wait(&recv_east_req, &status);
 			convolute(src, dst, 2, rows-1, cols, cols, cols, rows, h, imageType);
 		}
