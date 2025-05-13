@@ -18,6 +18,8 @@ int main(int argc, char **argv) {
     char *image;
     color_t imageType;
 
+    //shelt mpi init w keda
+
     Usage(argc, argv, &image, &width, &height, &loops, &imageType);
 
 
@@ -41,7 +43,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    // Read image file
+    // read 
     FILE *f = fopen(image, "rb");
     if (!f) {
         fprintf(stderr, "Cannot open image: %s\n", image);
@@ -57,7 +59,7 @@ int main(int argc, char **argv) {
     struct timeval start, end;
     gettimeofday(&start, NULL);
 
-    // Convolution loop
+    // convolution 
     for (int t = 0; t < loops; t++) {
         convolute(src, dst, width, height, h, imageType);
         uint8_t *tmp = src;
@@ -66,11 +68,11 @@ int main(int argc, char **argv) {
     }
 
     // Write output
-    char out_name[256];
-    snprintf(out_name, sizeof(out_name), "blur_serial", image);
-    f = fopen(out_name, "wb");
+    char outImage[256];
+    snprintf(outImage, sizeof(outImage), "blur_serial", image);
+    f = fopen(outImage, "wb");
     if (!f) {
-        fprintf(stderr, "Cannot write image: %s\n", out_name);
+        fprintf(stderr, "Cannot write image: %s\n", outImage);
         exit(EXIT_FAILURE);
     }
     for (i = 1; i <= height; i++) {
@@ -85,7 +87,7 @@ int main(int argc, char **argv) {
     time_taken = (time_taken + (end.tv_usec - start.tv_usec)) / 1e6;
     printf("Serial convolution completed in %.6f seconds\n", time_taken);
 
-    // Cleanup
+    // de allocate
     free(src);
     free(dst);
     for (i = 0; i < 3; i++) free(h[i]);
