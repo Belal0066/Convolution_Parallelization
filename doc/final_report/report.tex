@@ -111,139 +111,45 @@ contributing to the broader understanding of high-performance computing in image
 \section{Proposed Solution}
 
 \subsection{MPI Implementation}
+\subsubsection{Overview}
+The Message Passing Interface (MPI) is a standard for distributed-memory parallel programming, enabling efficient computation across multiple nodes in a cluster or supercomputer. In our project, the MPI-only implementation was chosen to address the limitations of single-node memory and to exploit the computational power of multiple machines. By decomposing the input image into blocks and distributing them among MPI processes, we can process very large images and scale the computation to a large number of cores.
 
+A few key concepts are central to understanding our MPI-based approach:
+\begin{itemize}
+    \item \textbf{Halos:} When an image is divided among processes, each process is assigned a block (submatrix) of the image. To correctly compute convolution at the edges of its block, a process needs pixel values from neighboring blocks. The extra rows and columns of data shared between neighboring processes are called \textit{halos} (or ghost regions). Halos ensure that convolution results at block boundaries are accurate by providing the necessary border data from adjacent blocks.
+    \item \textbf{Block Boundaries:} These are the edges of each submatrix (block) assigned to a process. Block boundaries are where data dependencies with neighboring blocks occur. Proper handling of block boundaries is essential, as convolution at these locations requires data from adjacent blocks, which is provided via halos.
+    \item \textbf{Non-blocking Communication:} In MPI, non-blocking communication (such as \texttt{MPI\_Isend} and \texttt{MPI\_Irecv}) allows a process to initiate a data transfer and immediately continue computation without waiting for the transfer to complete. This enables overlap of communication and computation, improving overall performance. The process can later check or wait for the communication to finish, ensuring that all necessary data has been exchanged before proceeding to the next step.
+\end{itemize}
 
+The design uses a 2D block decomposition, where the image is divided into submatrices (tiles), each assigned to a process. This approach minimizes the communication perimeter relative to the area of each block, reducing the amount of data exchanged between processes. Each process is responsible for reading its assigned block from disk (using parallel MPI I/O), performing the convolution operation locally, and writing the result back to disk. To handle the dependencies at the boundaries of each block, processes exchange halo (border) data with their immediate neighbors (north, south, east, west) using non-blocking communication primitives (\texttt{MPI\_Isend}, \texttt{MPI\_Irecv}). Custom MPI datatypes are used to efficiently send and receive rows and columns, further optimizing communication.
 
+\subsubsection{Implementation Details}
+The implementation supports both grayscale and RGB images, with separate convolution routines for each. The convolution is performed in-place for a specified number of iterations (loops), and after each iteration, the halo regions are updated to ensure correctness. The use of non-blocking communication allows computation and communication to overlap, reducing idle time and improving overall efficiency. The code is structured to automatically determine the optimal block decomposition based on the number of processes and the image dimensions, balancing the workload and minimizing communication overhead.
 
+\subsubsection{Challenges and Solutions}
+One of the main challenges in the MPI implementation is managing data dependencies at block boundaries. This is addressed by exchanging halo data after each iteration. Another challenge is achieving good load balancing, which is handled by the block decomposition strategy. Communication overhead is minimized by using non-blocking communication and by carefully choosing the block sizes. The implementation is portable and can run on any system with an MPI library, making it suitable for a wide range of high-performance computing environments.
 
-
-
-
+\subsubsection{Performance and Scalability}
+The MPI-only implementation demonstrates good scalability for large images and a high number of processes. By distributing the workload and overlapping communication with computation, the implementation achieves significant speedup compared to the sequential version. The use of parallel MPI I/O further improves performance by allowing all processes to read and write data concurrently.
 
 \subsection{Hybrid MPI + OpenMP Implementation}
-\subsubsection{Overview}
-The hybrid MPI + OpenMP implementation combines distributed-memory parallelism (MPI) with shared-memory parallelism (OpenMP) 
-to efficiently accelerate the convolution operation. 
-This approach leverages MPI for inter-process communication and workload distribution across multiple nodes, 
-while OpenMP is used to exploit thread-level parallelism within each node. 
-By combining these two paradigms, the implementation achieves both scalability across distributed systems 
-and efficient utilization of multi-core CPUs within each node.
+\subsubsection{Motivation and Design}
+While MPI is effective for distributed-memory parallelism, modern compute nodes often have many CPU cores that can be exploited using shared-memory parallelism. The hybrid MPI + OpenMP implementation combines the strengths of both paradigms: MPI is used for communication and workload distribution across nodes, while OpenMP is used to parallelize computation within each node. This approach maximizes resource utilization and reduces the number of MPI processes required per node, which in turn reduces communication overhead.
 
-\subsubsection{Key Implementation Components}
-1. \textbf{Workload Distribution with MPI:}
-\begin{itemize}
+The image is divided among MPI processes as in the MPI-only version, but within each process, the main convolution loops are parallelized using OpenMP. The OpenMP \texttt{parallel for} directive, often with the \texttt{collapse} clause, is used to distribute the work among threads. OpenMP sections are also used to overlap computation and communication, allowing the process to continue computing while waiting for halo data from neighbors.
 
-\item The image is divided into blocks, with each block assigned to a process. 
-The division is performed using a row-column decomposition strategy to minimize communication overhead.
-\item Each process is responsible for a subset of rows and columns to handle boundary conditions during convolution.
-\item MPI is used to exchange boundary data between neighboring processes using non-blocking communication (\textbf{MPI_Isend} and textbf{MPI_Irecv}).
-\end{itemize}
+\subsubsection{Implementation Details}
+Each MPI process is responsible for a block of the image and uses OpenMP to parallelize the convolution operation across all available CPU cores. The convolution routines for grayscale and RGB images are adapted to use OpenMP, with careful attention to data dependencies and memory access patterns. Halo exchange is still performed using MPI, but the number of MPI processes per node is reduced, as each process can now utilize multiple threads. This hybrid approach is particularly effective on modern multi-core and many-core systems.
 
-2. \textbf{Shared-Memory Parallelism with OpenMP:}
-\begin{itemize}
+The implementation also uses OpenMP sections to overlap the communication of halo data with the computation of the interior of the block. This further reduces idle time and improves overall efficiency. The code is designed to be flexible, allowing the number of OpenMP threads to be set at runtime, and to automatically adapt to the available hardware.
 
-\item Within each process, OpenMP is used to parallelize the convolution operation across multiple threads.
-\item The convolution loops are parallelized using \textbf{#pragma omp parallel for}, with the \textbf{collapse} clause applied to nested loops for better load balancing.
-\item OpenMP sections (\textbf{#pragma omp sections}) are used to overlap computation and communication, ensuring efficient utilization of CPU resources.
-\end{itemize}
+\subsubsection{Challenges and Solutions}
+The main challenge in the hybrid implementation is managing the interaction between MPI and OpenMP, particularly with respect to data dependencies and synchronization. Careful attention is paid to ensure that halo data is exchanged before the boundary regions are updated, and that threads do not interfere with each other's memory accesses. Load balancing is achieved by combining block decomposition (for MPI) with loop parallelization (for OpenMP). Communication overhead is further reduced by decreasing the number of MPI processes and by overlapping communication with computation.
 
-3. \textbf{Boundary Communication:}
-
-\begin{itemize}
-
-\item Processes exchange boundary rows and columns with their neighbors (north, south, east, west) to ensure correct convolution results at the edges of their assigned blocks.
-\item Non-blocking MPI communication allows computation to proceed while waiting for data from neighboring processes.
-\end{itemize}
-
-4. \textbf{Convolution Operation:}
-\begin{itemize}
-
-\item The convolution is performed using the \textbf{convolute} function, which applies the filter to each pixel in the assigned block.
-\item Separate functions (\textbf{convolute_grey} and \textbf{convolute_rgb}) handle grayscale and RGB images, respectively.
-\item OpenMP parallelism is applied to the inner loops of the convolution operation to maximize thread-level concurrency.
-
-5. \textbf{File I/O:}
-\begin{itemize}
-    \item MPI I/O is used for parallel reading and writing of the image file. Each process reads and writes only its assigned portion of the image, reducing I/O overhead.
-\end{itemize}
-
-
-
-\subsubsection{Advantages of the Hybrid Approach}
-
-\begin{itemize}
-    
-    \item \textbf{Efficient Resource Utilization:} 
-    \begin{itemize}
-    
-    \item OpenMP ensures that all CPU cores within a node are utilized, reducing idle time and improving performance.
-
-    \end{itemize}
-    
-
-    \item \textbf{Reduced Communication Overhead:} 
-    \begin{itemize}
-    
-    \item By combining MPI and OpenMP, the amount of inter-process communication is minimized, as threads within a process share memory and do not require communication.
-    \end{itemize}
-    \item \textbf{Overlapping Computation and Communication:} 
-    \begin{itemize}
-    \item The use of OpenMP sections allows computation to proceed while waiting for boundary data, improving overall efficiency.
-    \end{itemize}
-
-    \item \textbf{Scalability:} 
-    \begin{itemize}
-    \item Similar to the previous implementation MPI enables the implementation to scale across multiple nodes in a distributed system, making it suitable for processing large images.
-    \end{itemize}
-
-
-\subsubsection{Challenges Addressed}
-\begin{itemize}
- \item   \textbf{Data Dependencies:}
-        \begin{itemize}
-        \item Halo regions are used to handle dependencies between neighboring blocks during convolution.
-        \end{itemize}
-
-\item \textbf{Load Balancing:}
-        \begin{itemize}
-        \item The row-column decomposition ensures that workloads are evenly distributed among processes.
-        \end{itemize}
-\item \textbf{Communication Overhead:}
-        \begin{itemize}
-        \item Non-blocking MPI communication and overlapping computation with OpenMP sections mitigate the impact of communication delays.
-        \end{itemize}
-
-\end{itemize}
-
-\subsubsection{Implementation details}
-
-\begin{itemize}
-    \item \textbf{MPI Initialization:} 
-    \begin{itemize}
-        \item The MPI environment is initialized and the number of processes and their ranks are determined.
-        \item The input image is read and its dimensions and other parameters are distributed among processes using .
-    \end{itemize}
-    \item \textbf{Parallel Convolution:}
-    \begin{itemize}
-        \item Each process performs the convolution on its assigned block using OpenMP for thread-level parallelism.
-        \item Boundary data is exchanged between processes at each iteration.
-    \end{itemize}
-
-    \item \textbf{Final Output:}
-    \begin{itemize}
-        \item After completing the convolution, The final output is gathered from all processes and written to the output file.
-        \item And finally MPI environment is finalized.
-    \end{itemize}
-\end{itemize}
-
-
+\subsubsection{Performance and Scalability}
+The hybrid MPI + OpenMP implementation achieves superior performance and scalability compared to the MPI-only version, especially on systems with many CPU cores per node. By fully utilizing both inter-node and intra-node parallelism, the implementation can process very large images efficiently and achieve high speedup. The reduction in communication overhead and the ability to overlap communication with computation make this approach well-suited for modern high-performance computing systems.
 
 \subsection{CUDA Implementation}
-
-
-
-
-
 
 
 \section{Evaluation and Results}
@@ -377,7 +283,7 @@ To ensure accurate and reproducible performance results, our measurement methodo
 \vspace{0.5em}
 \textbf{2) Baseline Definition:} The sequential reference implementation is compiled with identical optimization flags as its parallel counterparts (\texttt{-O3}), and evaluated using the same input datasets. This ensures that any measured speedup reflects true parallel efficiency and not variation in compilation or execution environment.
 
-\vspace{0.5em}
+\v\vspace{0.5em}
 \textbf{3) Repeatability and Statistical Significance:} Each experiment is run 10 times after 3 warm-up iterations. The reported execution time is the arithmetic mean of the valid runs. We also calculate and report the standard deviation to capture runtime variability.
 
 \vspace{0.5em}
@@ -408,7 +314,7 @@ and parallel efficiency as:
 \end{equation}
 where \(T(1)\) is the execution time of the sequential version and \(T(p)\) is the time with \(p\) threads. These metrics will be plotted against thread counts to evaluate scalability and identify diminishing returns due to overheads or contention \cite{Rajput2013}.
 
-\vspace{0.5em}
+\v\vspace{0.5em}
 \textbf{2) Throughput and Kernel Performance:} 
 We will report throughput in GFLOPS/s, defined by the theoretical number of floating-point operations in a convolution kernel divided by its execution time. This enables comparison with architectural peaks and identification of underutilization.
 
