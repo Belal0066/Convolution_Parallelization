@@ -1,4 +1,3 @@
-
 % --- START OF FILE proposal.tex ---
 
 % Ensure 10pt font size is specified
@@ -12,6 +11,7 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{url} % Needed for \url{} 
+\usepackage{float}
 
 
 
@@ -30,7 +30,7 @@
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    21p0072@eng.asu.edu.eg}
+    21P0072@eng.asu.edu.eg}
 \and
     \IEEEauthorblockN{2\textsuperscript{nd} Mohamed Salah Fathy}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
@@ -42,13 +42,13 @@
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    21p0148@eng.asu.edu.eg}
+    21P0148@eng.asu.edu.eg}
 \and
     \IEEEauthorblockN{4\textsuperscript{th} Salma Hisham Hassan Wagdy}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    21p0124@eng.asu.edu.eg}
+    21P0124@eng.asu.edu.eg}
 }
 
 
@@ -161,30 +161,147 @@ Data parallelism is a powerful technique where the same operation (like convolut
 
 
 % --- EVALUATION PLAN ---
-\section{Proposed Evaluation}
+\section{Approaches Used}
 
-\subsection{\textbf{Hardware/Software Environment}}
+\subsection{\textbf{CUDA Evaluation and Profiling}}
 
-\textbf{Hardware Platform.} The evaluation will be conducted on a system powered by an \textit{AMD Ryzen\texttrademark~9 5900HS} processor, featuring:
+\textbf{Hardware Platform.} 
+The evaluation was performed on a laptop equipped with an \textit{AMD Ryzen\texttrademark~9 5900HS} CPU and a discrete \textbf{NVIDIA GeForce RTX 3050 (6~GB GDDR6)} GPU. This combination supports efficient multi-threaded execution on the host and high-throughput parallel execution on the device. Key hardware specifications:
+
 \begin{itemize}
-    \item \textbf{CPU Configuration:} 1 socket $\times$ 8 physical cores $\times$ 2 threads/core = 16 logical threads
-    \item \textbf{Clock Speeds:} Base frequency of approximately 3.3~GHz, with turbo boost up to 4.68~GHz; SMT enabled
-    \item \textbf{Cache Hierarchy:} 16~MB shared L3, 4~MB L2 (512~KB/core), and 512~KB L1 cache
-    \item \textbf{Memory:} Dual-channel 16~GB DDR4 @ 3200~MHz (2$\times$8~GB SODIMM)
-    \item \textbf{Instruction Set Extensions:} AVX2, FMA, BMI2, AES-NI, SHA, and AMD-V for virtualization
+    \item \textbf{CPU:} 8 cores $\times$ 2 threads/core = 16 logical threads, up to 4.68~GHz
+    \item \textbf{Cache:} 512~KB L1, 4~MB L2, 16~MB L3 (shared)
+    \item \textbf{Memory:} 16~GB DDR4 @ 3200~MHz, dual-channel
+    \item \textbf{GPU:} NVIDIA RTX 3050 Laptop GPU, 2048 CUDA cores, 6~GB GDDR6, boost clock ~1740~MHz
 \end{itemize}
-This configuration is well-suited for high-throughput parallel workloads, multi-threaded compilation, and virtualized environments.
 
 \textbf{Software Stack.}
 \begin{itemize}
-    \item \textbf{Operating System:} Ubuntu 24.04.2 LTS with Linux kernel 6.11.0
+    \item \textbf{OS:} Ubuntu 24.04.2 LTS, Kernel 6.11.0
     \item \textbf{Compiler:} GNU GCC 13.3.0
-    \item \textbf{Profiler:} Linux \texttt{perf} utility (v6.11.11) for performance analysis
+    \item \textbf{CUDA Toolkit:} 12.9 with Nsight Compute 2025.2.0
+    \item \textbf{Profiler:} \texttt{ncu (Nsight Compute)} for GPU kernel-level analysis
 \end{itemize}
 
+\textbf{Parallel Convolution using CUDA.}  
+The input image is divided into grids of thread blocks. Each thread is assigned to compute a single output pixel by applying a convolution mask to a neighborhood in the input image. To reduce latency from global memory, shared memory is used to cache overlapping image tiles per block. This minimizes redundant memory fetches and increases performance via data reuse.
+
+\textbf{CUDA Execution Model.}  
+In CUDA's heterogeneous model, the CPU (host) handles memory allocation and kernel invocation, while the GPU (device) performs actual computation across thousands of threads in parallel. Threads are grouped into warps, which are scheduled on Streaming Multiprocessors (SMs).
+
+\textbf{Profiling with Nsight Compute.}  
+The kernel was profiled using the command below, generating a `.ncu-rep` report for detailed GPU performance insights:
+
+\begin{lstlisting}[language=bash, caption={Nsight Compute Profiling Command}]
+sudo /usr/local/cuda-12.9/bin/ncu --set full --target-processes all --force-overwrite \
+  --export ./results/prof_run.ncu-rep \
+  ./cuda_conv input.raw 1920 2520 100 grey
+\end{lstlisting}
+
+\textbf{Metrics and Visual Analysis.}
+
+Figure~\ref{fig:workload-distribution} shows the distribution of active cycles across SMs, L1/L2 caches, and DRAM, indicating efficient utilization of compute resources.  
+Figure~\ref{fig:gpu-throughput} highlights that Compute Throughput reaches nearly 89\% of theoretical peak, while memory throughput is comparatively lower (~26\%), suggesting a compute-bound workload.
+
+\vspace{1em}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/WorkloadDistribution.png}
+    \caption{GPU and Memory Workload Distribution across Active Cycles}
+    \label{fig:workload-distribution}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/GPU_Throughput.png}
+    \caption{Compute vs Memory Throughput as Percentage of Speed-of-Light}
+    \label{fig:gpu-throughput}
+\end{figure}
+
+\textbf{Warp Behavior and Execution Bottlenecks.}
+
+Figure~\ref{fig:warp-states} presents the breakdown of warp stalls. The most dominant stall reason was \textit{Tex Throttle}, followed by \textit{Short Scoreboard}, both indicative of memory-related latency.  
+Figure~\ref{fig:pipe-utilization} further shows that the FP64 pipeline is over-utilized (89.5\% active cycles), potentially introducing bottlenecks.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/WarpState.png}
+    \caption{Warp State Distribution during Kernel Execution}
+    \label{fig:warp-states}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/PipeUtilization.png}
+    \caption{Pipe Utilization: FP64 Dominance and ALU/FMA Usage}
+    \label{fig:pipe-utilization}
+\end{figure}
+
+\textbf{Memory Access and Cache Efficiency.}
+
+Memory flow visualization in Figure~\ref{fig:memory-chart} shows strong L1/L2 cache performance with hit rates of 96\% and 98\% respectively.  
+Figure~\ref{fig:l2-excess} shows that 94\% of L2 requests are uncoalesced, indicating room for improving memory access patterns via coalescing.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/MemoryChart.png}
+    \caption{Memory Access Pattern and Cache Hit Rates}
+    \label{fig:memory-chart}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/L2.png}
+    \caption{L2 Cache: Global Access Sector Overuse and Warp Stalls}
+    \label{fig:l2-excess}
+\end{figure}
+
+\textbf{Occupancy and Shared Memory Optimization.}
+
+Nsight’s occupancy graphs (Figures~\ref{fig:occupancy-shared} and \ref{fig:occupancy-block}) show that using fewer registers and shared memory per block improves occupancy. The configuration around 256 threads per block with modest shared memory usage achieves optimal utilization.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/ImpactOfVarying_2.png}
+    \caption{Occupancy vs Shared Memory Usage per Block}
+    \label{fig:occupancy-shared}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/ImpactOfVarying.png}
+    \caption{Occupancy vs Block Size and Register Usage}
+    \label{fig:occupancy-block}
+\end{figure}
+
+\textbf{Performance Summary.}
+
+The CUDA kernel demonstrated a speedup of over 11$\times$ compared to the sequential CPU implementation:
+
+\[
+\text{Speedup} = \frac{3100\text{ ms}}{265\text{ ms}} \approx 11.7\times
+\]
+
+\begin{table}[H]
+    \centering
+    \caption{Performance Comparison: CPU vs CUDA}
+    \label{tab:speedup-table}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Configuration} & \textbf{CPU Time (ms)} & \textbf{CUDA Time (ms)} & \textbf{Speedup} \\
+        \midrule
+        1920$\times$2520 Image & 3100 & 265 & 11.7$\times$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Overall, CUDA and Nsight Compute provided rich diagnostics, and the profiling insights suggest future directions for optimizing memory access patterns, reducing warp stalls, and increasing scheduler issue efficiency.
 
 
-\subsection{\textbf{Benchmark Workloads}}
+
+
+\subsection{\textbf{MPI}}
 
 Benchmark workloads are chosen based on key criteria: representativeness, scalability, memory/computation balance, reproducibility, and their suitability for multi-core evaluation. The goal is to probe both compute-bound and memory-bound behaviors across a range of image sizes and convolution configurations.
 
@@ -205,7 +322,7 @@ To simulate realistic usage scenarios, we implement a three-stage filter pipelin
 
 
 
-\subsection{\textbf{Measurement Methodology}}
+\subsection{\textbf{OpenMp+MPI}}
 
 To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{Gawrych2023,  Rajput2013,  Yoon2012}.
 
