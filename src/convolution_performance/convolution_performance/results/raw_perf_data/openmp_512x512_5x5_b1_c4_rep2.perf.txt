@@ -1,0 +1,21 @@
+# started on Tue May 13 12:13:30 2025
+
+
+ Performance counter stats for './scripts/../bin/conv_openmp 512 512 5 5 1 4':
+
+              7.17 msec task-clock                       #    2.637 CPUs utilized             
+        17,844,359      cycles                           #    2.487 GHz                         (29.30%)
+         7,693,587      instructions                     #    0.43  insn per cycle              (86.18%)
+           197,122      cache-references                 #   27.477 M/sec                     
+            74,807      cache-misses                     #   37.95% of all cache refs         
+            31,964      L1-dcache-load-misses                                                 
+   <not supported>      LLC-load-misses                                                       
+         1,646,377      branch-instructions              #  229.490 M/sec                       (79.11%)
+            32,248      branch-misses                    #    1.96% of all branches             (33.51%)
+
+       0.002720358 seconds time elapsed
+
+       0.003732000 seconds user
+       0.001866000 seconds sys
+
+
