@@ -33,7 +33,7 @@ convolution_performance/
 
 ## Feature Overview
 
-- **Dummy Kernel Implementations**: Configurable dummy convolution kernels for each paradigm that simulate computational workload
+
 - **Performance Data Collection**: Uses Linux `perf` for detailed performance metrics 
 - **Flexible Benchmarking**: Configurable benchmark parameters (image size, kernel size, batch size, etc.)
 - **Parallel Scaling Analysis**: Compare performance across different thread/process counts
@@ -44,7 +44,7 @@ convolution_performance/
   - Instructions per cycle (IPC)
   - Other customizable performance metrics
 
-## Getting Started
+
 
 ### Prerequisites
 
