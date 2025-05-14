@@ -1,0 +1,25 @@
+# started on Tue May 13 12:13:27 2025
+
+
+ Performance counter stats for './scripts/../bin/conv_openmp 256 256 3 3 1 1':
+
+              1.09 msec task-clock                       #    0.728 CPUs utilized             
+         3,717,321      cycles                           #    3.409 GHz                         (19.13%)
+         2,088,271      instructions                     #    0.56  insn per cycle            
+           121,317      cache-references                 #  111.247 M/sec                     
+            36,864      cache-misses                     #   30.39% of all cache refs         
+            19,398      L1-dcache-load-misses                                                 
+   <not supported>      LLC-load-misses                                                       
+           390,735      branch-instructions              #  358.303 M/sec                       (80.87%)
+     <not counted>      branch-misses                                                           (0.00%)
+
+       0.001497655 seconds time elapsed
+
+       0.000000000 seconds user
+       0.001536000 seconds sys
+
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog

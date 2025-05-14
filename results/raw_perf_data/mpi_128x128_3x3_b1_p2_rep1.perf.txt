@@ -1,0 +1,21 @@
+# started on Wed May 14 03:53:54 2025
+
+
+ Performance counter stats for 'mpirun -np 2 ./scripts/../scripts/../bin/conv_mpi 128 128 3 3 1':
+
+            301.95 msec task-clock                       #    0.668 CPUs utilized             
+     1,102,069,413      cycles                           #    3.650 GHz                         (75.81%)
+       780,660,064      instructions                     #    0.71  insn per cycle              (69.79%)
+        34,142,210      cache-references                 #  113.071 M/sec                       (66.30%)
+         7,317,373      cache-misses                     #   21.43% of all cache refs           (67.41%)
+         7,725,130      L1-dcache-load-misses                                                   (71.68%)
+   <not supported>      LLC-load-misses                                                       
+       165,982,258      branch-instructions              #  549.694 M/sec                       (76.21%)
+        11,707,134      branch-misses                    #    7.05% of all branches             (73.91%)
+
+       0.452102685 seconds time elapsed
+
+       0.058129000 seconds user
+       0.241999000 seconds sys
+
+

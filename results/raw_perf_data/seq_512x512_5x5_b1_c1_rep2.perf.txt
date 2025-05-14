@@ -1,0 +1,25 @@
+# started on Tue May 13 12:13:29 2025
+
+
+ Performance counter stats for './scripts/../bin/conv_seq 512 512 5 5 1 c1':
+
+              1.50 msec task-clock                       #    0.783 CPUs utilized             
+         5,545,241      cycles                           #    3.707 GHz                         (44.17%)
+         2,357,453      instructions                     #    0.43  insn per cycle            
+            87,824      cache-references                 #   58.711 M/sec                     
+            26,587      cache-misses                     #   30.27% of all cache refs         
+            14,259      L1-dcache-load-misses                                                 
+   <not supported>      LLC-load-misses                                                       
+           275,970      branch-instructions              #  184.489 M/sec                       (55.83%)
+     <not counted>      branch-misses                                                           (0.00%)
+
+       0.001909354 seconds time elapsed
+
+       0.000980000 seconds user
+       0.000980000 seconds sys
+
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
