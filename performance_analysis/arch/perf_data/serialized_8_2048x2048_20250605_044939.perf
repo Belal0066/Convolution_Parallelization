@@ -1,0 +1,18 @@
+# started on Thu Jun  5 04:49:39 2025
+
+
+ Performance counter stats for './serialized input_2048x2048.raw 2048 2048 1 grey':
+
+       184,712,059      cycles                                                                  (84.15%)
+       276,278,742      instructions                     #    1.50  insn per cycle              (84.02%)
+           492,003      cache-misses                     #   10.18% of all cache refs           (77.40%)
+         4,833,487      cache-references                                                        (86.16%)
+        15,018,428      branches                                                                (84.22%)
+         1,264,720      branch-misses                    #    8.42% of all branches             (84.05%)
+
+       0.044263281 seconds time elapsed
+
+       0.024198000 seconds user
+       0.019990000 seconds sys
+
+

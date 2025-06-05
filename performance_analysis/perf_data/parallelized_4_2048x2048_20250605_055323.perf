@@ -1,0 +1,18 @@
+# started on Thu Jun  5 05:53:23 2025
+
+
+ Performance counter stats for '../bin/parallelized Inputs/input_blur_waterfall_grey_2048x2048.raw 2048 2048 1 grey':
+
+     1,040,997,097      cycles                                                                  (83.28%)
+       729,569,171      instructions                     #    0.70  insn per cycle              (84.09%)
+         4,789,394      cache-misses                     #   19.34% of all cache refs           (85.25%)
+        24,767,971      cache-references                                                        (83.31%)
+       122,708,042      branches                                                                (84.92%)
+         9,717,992      branch-misses                    #    7.92% of all branches             (79.23%)
+
+       0.495822722 seconds time elapsed
+
+       0.048671000 seconds user
+       0.074787000 seconds sys
+
+

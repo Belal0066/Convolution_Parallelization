@@ -1,0 +1,18 @@
+# started on Thu Jun  5 04:49:57 2025
+
+
+ Performance counter stats for 'mpirun -np 4 ./mpi_conv input_2048x2048.raw 2048 2048 1 grey':
+
+     2,266,861,891      cycles                                                                  (84.34%)
+     1,638,817,783      instructions                     #    0.72  insn per cycle              (82.88%)
+        13,935,073      cache-misses                     #   21.34% of all cache refs           (83.27%)
+        65,294,935      cache-references                                                        (83.92%)
+       347,989,619      branches                                                                (82.21%)
+        23,309,315      branch-misses                    #    6.70% of all branches             (83.59%)
+
+       0.562556187 seconds time elapsed
+
+       0.127190000 seconds user
+       0.435338000 seconds sys
+
+

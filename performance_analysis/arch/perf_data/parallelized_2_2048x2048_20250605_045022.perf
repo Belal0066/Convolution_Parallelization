@@ -1,0 +1,18 @@
+# started on Thu Jun  5 04:50:22 2025
+
+
+ Performance counter stats for './parallelized input_2048x2048.raw 2048 2048 1 grey':
+
+     1,100,107,111      cycles                                                                  (85.17%)
+       828,344,656      instructions                     #    0.75  insn per cycle              (82.81%)
+         4,942,226      cache-misses                     #   18.12% of all cache refs           (84.21%)
+        27,276,751      cache-references                                                        (82.70%)
+       143,428,377      branches                                                                (84.99%)
+        10,972,650      branch-misses                    #    7.65% of all branches             (80.16%)
+
+       0.502409231 seconds time elapsed
+
+       0.045366000 seconds user
+       0.077937000 seconds sys
+
+

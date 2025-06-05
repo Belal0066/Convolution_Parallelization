@@ -1,0 +1,18 @@
+# started on Thu Jun  5 05:43:25 2025
+
+
+ Performance counter stats for 'mpirun -np 4 ./mpi_conv input_512x512.raw 512 512 1 grey':
+
+       490,118,863      cycles                                                                  (83.67%)
+       271,999,649      instructions                     #    0.55  insn per cycle              (84.22%)
+         2,207,776      cache-misses                     #   19.74% of all cache refs           (84.40%)
+        11,185,290      cache-references                                                        (85.38%)
+        66,296,312      branches                                                                (81.74%)
+         5,611,522      branch-misses                    #    8.46% of all branches             (80.61%)
+
+       0.114886737 seconds time elapsed
+
+       0.015237000 seconds user
+       0.097957000 seconds sys
+
+
