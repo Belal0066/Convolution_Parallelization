@@ -1,0 +1,16 @@
+# started on Sun Jun  8 00:27:47 2025
+
+
+ Performance counter stats for '../bin/serialized Inputs/input_blur_waterfall_grey_8192x8192.raw 8192 8192 1 grey':
+
+     2,220,469,807      cycles                                                                
+     4,358,296,531      instructions                     #    1.96  insn per cycle            
+        18,537,802      L1-dcache-load-misses                                                 
+   <not supported>      LLC-load-misses                                                       
+
+       0.527984373 seconds time elapsed
+
+       0.314480000 seconds user
+       0.197931000 seconds sys
+
+
