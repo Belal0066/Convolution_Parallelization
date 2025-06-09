@@ -1,0 +1,16 @@
+# started on Sun Jun  8 00:28:29 2025
+
+
+ Performance counter stats for 'mpirun -np 16 ../bin/mpi_conv Inputs/input_blur_waterfall_grey_8192x8192.raw 8192 8192 1 grey':
+
+       689,926,746      cycles                                                                
+       306,307,767      instructions                     #    0.44  insn per cycle            
+         2,631,633      L1-dcache-load-misses                                                 
+   <not supported>      LLC-load-misses                                                       
+
+       0.159045872 seconds time elapsed
+
+       0.012776000 seconds user
+       0.142511000 seconds sys
+
+
