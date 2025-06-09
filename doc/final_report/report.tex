@@ -11,6 +11,7 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{url} % Needed for \url{} 
+\usepackage{float}
 
 
 
@@ -29,7 +30,7 @@
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    21p0072@eng.asu.edu.eg}
+    21P0072@eng.asu.edu.eg}
 \and
     \IEEEauthorblockN{2\textsuperscript{nd} Mohamed Salah Fathy}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
@@ -41,13 +42,13 @@
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    21p0148@eng.asu.edu.eg}
+    21P0148@eng.asu.edu.eg}
 \and
     \IEEEauthorblockN{4\textsuperscript{th} Salma Hisham Hassan Wagdy}
     \IEEEauthorblockA{\textit{Computer and Systems Eng. Dept.} \\
     \textit{Faculty of Engineering, Ain Shams University}\\
     Cairo, Egypt \\
-    21p0124@eng.asu.edu.eg}
+    21P0124@eng.asu.edu.eg}
 }
 
 
@@ -55,13 +56,7 @@
 
 % --- Abstract & Keywords ---
 \begin{abstract}
-Convolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. 
-This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. 
-We employ profiling techniques to identify bottlenecks, 
-and parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. 
-The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, 
-contextualized within the principles of automatic parallelization analysis.
-y comparing serial and parallel implementations, we demonstrate the significant performance improvements achievable through parallel programming techniques. Using OpenMP and MPI, we achieve notable speedup and scalability, highlighting the effectiveness of shared-memory and distributed-memory parallelization. 
+Convolution is a fundamental and computationally intensive operation widely used in computer vision and image processing. This project investigates the performance limitations of sequential convolution implementations and explores acceleration using multi-core CPU architectures. We employ profiling techniques to identify bottlenecks, and parallelize the core convolution loops, and conduct a systematic evaluation of the resulting speedup and scalability. The objective is to demonstrate significant performance improvements achievable through standard parallel programming techniques for this common computational kernel, contextualized within the principles of automatic parallelization analysis.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -104,6 +99,15 @@ contributing to the broader understanding of high-performance computing in image
 
 
 \section{Related Work}
+\begin{itemize}
+    \item \textbf{SIMD and Cache Optimization \cite{Ferrari2023}}
+    Recent efforts focus on tailoring convolutions to cache hierarchies and vector units. For example, CSA (Convolution‑specific Cache-blocking Analysis) and CSO (Convolution‑Slicing Optimization) guide tiling decisions across cache levels, while micro‑kernels target peak register performance—yielding up to 26\% inference speedup on x86 and POWER10
+    
+    \item \textbf{Frequency and Algebraic Methods \cite{Huang2021}}
+    \textbf{FFT-based convolution}: Using fast Fourier transforms reduces computational complexity. On many-core CPUs, especially with NUMA-aware designs, FFT-based methods can outperform direct or GEMM‑based approaches
+    
+    \textbf{Winograd algorithm}: Optimized for small kernels (e.g., 3×3), Winograd reduces multiplications but complicates memory access. Some studies suggest FFT-based implementations can outperform Winograd when computation and memory costs are balanced .
+\end{itemize}
 
 
 
@@ -149,190 +153,274 @@ The main challenge in the hybrid implementation is managing the interaction betw
 \subsubsection{Performance and Scalability}
 The hybrid MPI + OpenMP implementation achieves superior performance and scalability compared to the MPI-only version, especially on systems with many CPU cores per node. By fully utilizing both inter-node and intra-node parallelism, the implementation can process very large images efficiently and achieve high speedup. The reduction in communication overhead and the ability to overlap communication with computation make this approach well-suited for modern high-performance computing systems.
 
-\subsection{CUDA Implementation}
-
-
-\section{Evaluation and Results}
-
-
-
-
-
-\section{Conclusion and Future Work}
-
-
-
-
-
-
-% --- PROBLEM DEFINITION ---
-\section{Problem Definition}
-
-\subsection{The Convolution Operation}
-A convolution operation involves the following detailed steps:
-
-\begin{itemize}
-    \item \textbf{Filter Definition:} A small matrix (typically 3×3 or 5×5) is defined as the convolutional kernel.
-    \item \textbf{Kernel Traversal:} This kernel moves systematically across the input image from left-to-right and top-to-bottom.
-    \item \textbf{Dot Product Computation:} At each location:
-    \begin{enumerate}
-        \item The kernel is aligned with a portion of the image.
-        \item Element-wise multiplication is performed between kernel values and corresponding image pixels.
-        \item All products are summed to produce a single output value.
-    \end{enumerate}
-    \item \textbf{Feature Map Formation:} The results of these computations form a new matrix representing transformed features of the original image.
-\end{itemize}
-
-\subsection{Convolution in CNNs}
-Convolutional Neural Networks (CNNs) utilize multiple convolutional layers combined with traditional neural network layers. The hierarchical feature extraction process occurs as follows:
-
-\begin{itemize}
-    \item \textbf{Layer Progression:}
-    \begin{itemize}
-        \item Initial layers detect basic features (edges, textures).
-        \item Intermediate layers combine these into more complex patterns.
-        \item Final layers identify complete components (e.g., facial features, object parts).
-    \end{itemize}
-    \item \textbf{Implementation Steps:}
-    \begin{enumerate}
-        \item Kernel alignment at the top-left image pixel.
-        \item Precise element-wise multiplication between kernel and image region.
-        \item Aggregation of products into a feature map pixel.
-        \item Systematic repetition across the entire image with specified stride.
-    \end{enumerate}
-\end{itemize}
-
-\subsection{Parallelization Approaches}
-\subsubsection{Data Parallelism}
-Data parallelism is a powerful technique where the same operation (like convolution) is performed on different parts of data simultaneously.
-
-\begin{itemize}
-    \item \textbf{Implementation Steps:}
-    \begin{enumerate}
-        \item \textbf{Partition the input data into smaller chunks (e.g., image tiles):} Each block will be assigned to a thread/process.
-        \item \textbf{Apply Convolution in Parallel:} Each thread applies the same kernel on its data block. Since output at each location is independent, there's no data race.
-        \item Each unit performs the convolution operation independently on its assigned chunk.
-        \item \textbf{Synchronize or Merge Results:} In shared-memory systems (OpenMP, CUDA), threads write to separate output buffers — minimal sync needed. In distributed systems (MPI), use \texttt{MPI\_Gather} or \texttt{MPI\_Reduce} to merge partial outputs.
-    \end{enumerate}
-    \item \textbf{Advantages:}
-    \begin{itemize}
-        \item \textbf{Increased Speed:} Each thread or processing unit handles a portion of data, reducing execution time.
-        \item \textbf{Scalability:} Works efficiently on multi-core CPUs, GPUs, and clusters (via MPI).
-        \item \textbf{Simplicity:} You replicate the same logic across data chunks — easier to manage and debug.
-        \item \textbf{Reduced Memory Bottleneck:} Localized data access patterns improve cache utilization and memory access speeds.
-        \item \textbf{Portability:} Data parallelism can be implemented with OpenMP (CPU), CUDA (GPU), or MPI (distributed).
-    \end{itemize}
-\end{itemize}
-
 
 
 
 
 % --- EVALUATION PLAN ---
-\section{Proposed Evaluation}
+\section{Approaches Used}
 
-\subsection{\textbf{Hardware/Software Environment}}
+\subsection{\textbf{CUDA Evaluation and Profiling}}
 
-\textbf{Hardware Platform.} The evaluation will be conducted on a system powered by an \textit{AMD Ryzen\texttrademark~9 5900HS} processor, featuring:
+\textbf{Hardware Platform.} 
+The evaluation was performed on a laptop equipped with an \textit{AMD Ryzen\texttrademark~9 5900HS} CPU and a discrete \textbf{NVIDIA GeForce RTX 3050 (6~GB GDDR6)} GPU. This combination supports efficient multi-threaded execution on the host and high-throughput parallel execution on the device. Key hardware specifications:
+
 \begin{itemize}
-    \item \textbf{CPU Configuration:} 1 socket $\times$ 8 physical cores $\times$ 2 threads/core = 16 logical threads
-    \item \textbf{Clock Speeds:} Base frequency of approximately 3.3~GHz, with turbo boost up to 4.68~GHz; SMT enabled
-    \item \textbf{Cache Hierarchy:} 16~MB shared L3, 4~MB L2 (512~KB/core), and 512~KB L1 cache
-    \item \textbf{Memory:} Dual-channel 16~GB DDR4 @ 3200~MHz (2$\times$8~GB SODIMM)
-    \item \textbf{Instruction Set Extensions:} AVX2, FMA, BMI2, AES-NI, SHA, and AMD-V for virtualization
+    \item \textbf{CPU:} 8 cores $\times$ 2 threads/core = 16 logical threads, up to 4.68~GHz
+    \item \textbf{Cache:} 512~KB L1, 4~MB L2, 16~MB L3 (shared)
+    \item \textbf{Memory:} 16~GB DDR4 @ 3200~MHz, dual-channel
+    \item \textbf{GPU:} NVIDIA RTX 3050 Laptop GPU, 2048 CUDA cores, 6~GB GDDR6, boost clock ~1740~MHz
 \end{itemize}
-This configuration is well-suited for high-throughput parallel workloads, multi-threaded compilation, and virtualized environments.
 
 \textbf{Software Stack.}
 \begin{itemize}
-    \item \textbf{Operating System:} Ubuntu 24.04.2 LTS with Linux kernel 6.11.0
+    \item \textbf{OS:} Ubuntu 24.04.2 LTS, Kernel 6.11.0
     \item \textbf{Compiler:} GNU GCC 13.3.0
-    \item \textbf{Profiler:} Linux \texttt{perf} utility (v6.11.11) for performance analysis
+    \item \textbf{CUDA Toolkit:} 12.9 with Nsight Compute 2025.2.0
+    \item \textbf{Profiler:} \texttt{ncu (Nsight Compute)} for GPU kernel-level analysis
+\end{itemize}
+
+\textbf{Parallel Convolution using CUDA.}  
+The input image is divided into grids of thread blocks. Each thread is assigned to compute a single output pixel by applying a convolution mask to a neighborhood in the input image. To reduce latency from global memory, shared memory is used to cache overlapping image tiles per block. This minimizes redundant memory fetches and increases performance via data reuse.
+
+\textbf{CUDA Execution Model.}  
+In CUDA's heterogeneous model, the CPU (host) handles memory allocation and kernel invocation, while the GPU (device) performs actual computation across thousands of threads in parallel. Threads are grouped into warps, which are scheduled on Streaming Multiprocessors (SMs).
+
+\textbf{Profiling with Nsight Compute.}  
+The kernel was profiled using the command below, generating a `.ncu-rep` report for detailed GPU performance insights:
+
+\begin{lstlisting}[language=bash, caption={Nsight Compute Profiling Command}]
+sudo /usr/local/cuda-12.9/bin/ncu --set full --target-processes all --force-overwrite \
+  --export ./results/prof_run.ncu-rep \
+  ./cuda_conv input.raw 1920 2520 100 grey
+\end{lstlisting}
+
+\textbf{Metrics and Visual Analysis.}
+
+Figure~\ref{fig:workload-distribution} shows the distribution of active cycles across SMs, L1/L2 caches, and DRAM, indicating efficient utilization of compute resources.  
+Figure~\ref{fig:gpu-throughput} highlights that Compute Throughput reaches nearly 89\% of theoretical peak, while memory throughput is comparatively lower (~26\%), suggesting a compute-bound workload.
+
+\vspace{1em}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/WorkloadDistribution.png}
+    \caption{GPU and Memory Workload Distribution across Active Cycles}
+    \label{fig:workload-distribution}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/GPU_Throughput.png}
+    \caption{Compute vs Memory Throughput as Percentage of Speed-of-Light}
+    \label{fig:gpu-throughput}
+\end{figure}
+
+\textbf{Warp Behavior and Execution Bottlenecks.}
+
+Figure~\ref{fig:warp-states} presents the breakdown of warp stalls. The most dominant stall reason was \textit{Tex Throttle}, followed by \textit{Short Scoreboard}, both indicative of memory-related latency.  
+Figure~\ref{fig:pipe-utilization} further shows that the FP64 pipeline is over-utilized (89.5\% active cycles), potentially introducing bottlenecks.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/WarpState.png}
+    \caption{Warp State Distribution during Kernel Execution}
+    \label{fig:warp-states}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/PipeUtilization.png}
+    \caption{Pipe Utilization: FP64 Dominance and ALU/FMA Usage}
+    \label{fig:pipe-utilization}
+\end{figure}
+
+\textbf{Memory Access and Cache Efficiency.}
+
+Memory flow visualization in Figure~\ref{fig:memory-chart} shows strong L1/L2 cache performance with hit rates of 96\% and 98\% respectively.  
+Figure~\ref{fig:l2-excess} shows that 94\% of L2 requests are uncoalesced, indicating room for improving memory access patterns via coalescing.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/MemoryChart.png}
+    \caption{Memory Access Pattern and Cache Hit Rates}
+    \label{fig:memory-chart}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/L2.png}
+    \caption{L2 Cache: Global Access Sector Overuse and Warp Stalls}
+    \label{fig:l2-excess}
+\end{figure}
+
+\textbf{Occupancy and Shared Memory Optimization.}
+
+Nsight’s occupancy graphs (Figures~\ref{fig:occupancy-shared} and \ref{fig:occupancy-block}) show that using fewer registers and shared memory per block improves occupancy. The configuration around 256 threads per block with modest shared memory usage achieves optimal utilization.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/ImpactOfVarying_2.png}
+    \caption{Occupancy vs Shared Memory Usage per Block}
+    \label{fig:occupancy-shared}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/ImpactOfVarying.png}
+    \caption{Occupancy vs Block Size and Register Usage}
+    \label{fig:occupancy-block}
+\end{figure}
+
+\textbf{Performance Summary.}
+
+The CUDA kernel demonstrated a speedup of over 11$\times$ compared to the sequential CPU implementation:
+
+\[
+\text{Speedup} = \frac{3100\text{ ms}}{265\text{ ms}} \approx 11.7\times
+\]
+
+\begin{table}[H]
+    \centering
+    \caption{Performance Comparison: CPU vs CUDA}
+    \label{tab:speedup-table}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Configuration} & \textbf{CPU Time (ms)} & \textbf{CUDA Time (ms)} & \textbf{Speedup} \\
+        \midrule
+        1920$\times$2520 Image & 3100 & 265 & 11.7$\times$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Overall, CUDA and Nsight Compute provided rich diagnostics, and the profiling insights suggest future directions for optimizing memory access patterns, reducing warp stalls, and increasing scheduler issue efficiency.
+
+
+
+
+\subsection{\textbf{Multi-Core CPU}}
+
+\subsubsection{\textbf{Weak Scaling}}
+
+\textbf{A. Weak Scaling Analysis}
+Weak scaling maintained constant workload per processing unit by proportionally increasing image size with N threads/processes for MPI-only (mpi\_conv) and hybrid OpenMP+MPI (parallelized) versions \cite{Gustafson1988}.
+
+\textbf{1. Aggregate Weak Scaling Performance Metrics (Fig.~\ref{fig:weak-scaling-metrics})}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/weak_scaling_metrics.png}
+    \caption{Weak Scaling Metrics: GFLOPS, Memory Bandwidth, IPC, Execution Time vs. threads.}
+    \label{fig:weak-scaling-metrics}
+\end{figure}
+    \textbf{GFLOPS:} Both parallel versions scaled GFLOPS upwards; `parallelized` consistently higher.
+    \textbf{Memory Bandwidth:} Both increased usage; `parallelized` sustained higher bandwidth.
+    \textbf{IPC:} `parallelized` maintained higher, stable IPC (~1.8-1.9); mpi\_conv lower (~0.6-0.7), dipping late.
+    \textbf{Execution Time:} `parallelized` showed excellent weak scaling (near-constant time ~0.15-0.18s); mpi\_conv higher (~0.20-0.25s) with a slight upward trend.
+
+\textbf{2. Detailed Weak Scaling Analysis via 3D Surface Plots}
+    \textbf{Memory Bandwidth (Fig.~\ref{fig:weak-scaling-bandwidth-3d}):} `parallelized` surface consistently higher, indicating superior bandwidth utilization.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/bandwidth_3d_surfaces.png}
+    \caption{Weak Scaling Memory Bandwidth (3D): `parallelized` (L) & mpi\_conv (R) vs. Serial.}
+    \label{fig:weak-scaling-bandwidth-3d}
+\end{figure}
+    \textbf{L1 Cache Miss Rate (Fig.~\ref{fig:weak-scaling-l1-miss-3d}):} `parallelized` exhibited low, flat L1 miss rates; mpi\_conv showed peaks, suggesting poorer L1 locality \cite{Yoon2012}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/l1_miss_rate_3d_surfaces.png}
+    \caption{Weak Scaling L1 Cache Miss Rate (3D): `parallelized` (L) & mpi\_conv (R) vs. Serial.}
+    \label{fig:weak-scaling-l1-miss-3d}
+\end{figure}
+    \textbf{GFLOPS/s (Fig.~\ref{fig:weak-scaling-gflops-3d}):} `parallelized` GFLOPS surface consistently higher and smoother.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/gflops_3d_surfaces.png}
+    \caption{Weak Scaling GFLOPS/s (3D): `parallelized` (L) & mpi\_conv (R) vs. Serial.}
+    \label{fig:weak-scaling-gflops-3d}
+\end{figure}
+    \textbf{Execution Time (Fig.~\ref{fig:weak-scaling-execution-time-3d}):} `parallelized` surface flatter and lower, confirming near-ideal weak scaling.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/weak_scaling_3d_surfaces.png}
+    \caption{Weak Scaling Execution Time (3D): mpi\_conv (L) & `parallelized` (R) vs. Serial.}
+    \label{fig:weak-scaling-execution-time-3d}
+\end{figure}
+
+\textbf{3. Summary of Weak Scaling Findings}
+\begin{itemize}
+    \item Hybrid `parallelized` (OpenMP+MPI) outperformed MPI-only mpi\_conv, achieving near-ideal weak scaling with constant execution time.
+    \item mpi\_conv, while scalable, showed lower efficiency, linked to higher L1 miss rates and MPI overheads.
+    \item Hybrid's superiority likely due to lower OpenMP overheads for intra-node tasks, better shared-memory cache use, and finer load balancing \cite{Gawrych2023}.
+\end{itemize}
+
+\subsubsection{\textbf{Strong Scaling}}
+
+Strong scaling used a fixed problem size (8192x8192 in this case) with increasing units (1-16), analyzed via Amdahl's Law \cite{hager2021hpc}.
+
+\textbf{1. Speedup and Amdahl's Law (Fig.~\ref{fig:amdahls-law})}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/amdahls_law.png}
+    \caption{Strong Scaling Speedup vs. Threads: mpi\_conv & `parallelized` vs. Amdahl's Law \cite{Rajput2013}.}
+    \label{fig:amdahls-law}
+\end{figure}
+    \textbf{mpi\_conv:} Good initial speedup (peak ~4.9x at 4 threads), then plateaued, limited by sequential portions or MPI overheads.
+    \textbf{`parallelized`:} Much lower speedup (max ~2.35x), significantly limited by overheads for the fixed problem size.
+    \textbf{Comparison:} mpi\_conv scaled better initially; `parallelized` struggled with hybrid overheads.
+
+\textbf{2. Strong Scaling Performance Metrics (Figs.~\ref{fig:strong-scaling-metrics-all}-\ref{fig:strong-scaling-l1-miss})}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/strong_scaling_metrics.png}
+    \caption{Strong Scaling Metrics: GFLOPS, Bandwidth, IPC, Exec. Time vs. threads \cite{Wang2023}.}
+    \label{fig:strong-scaling-metrics-all}
+\end{figure}
+    \textbf{GFLOPS (Fig.~\ref{fig:strong-scaling-gflops}):} mpi\_conv higher throughput, plateaued; `parallelized` consistently lower.
+\begin{figure}[H] \centering \includegraphics[width=0.7\linewidth]{figures/gflops_vs_threads.png} \caption{Strong GFLOPS.}\label{fig:strong-scaling-gflops}\end{figure}
+    \textbf{Memory Bandwidth (Fig.~\ref{fig:strong-scaling-mem-bw}):} mpi\_conv higher usage; `parallelized` lower.
+\begin{figure}[H] \centering \includegraphics[width=0.7\linewidth]{figures/mem_bandwidth_vs_threads.png} \caption{Strong Mem. Bandwidth.}\label{fig:strong-scaling-mem-bw}\end{figure}
+    \textbf{IPC (Fig.~\ref{fig:strong-scaling-ipc}):} mpi\_conv IPC dropped significantly; `parallelized` IPC increased with threads (efficient small work execution) but overall speedup remained poor.
+\begin{figure}[H] \centering \includegraphics[width=0.7\linewidth]{figures/ipc_vs_threads.png} \caption{Strong IPC.}\label{fig:strong-scaling-ipc}\end{figure}
+    \textbf{Execution Time:} mpi\_conv faster, stabilized early; `parallelized` slower.
+    \textbf{Parallel Efficiency (Fig.~\ref{fig:strong-scaling-efficiency}):} mpi\_conv high initially then dropped; `parallelized` low throughout.
+\begin{figure}[H] \centering \includegraphics[width=0.7\linewidth]{figures/efficiency_vs_threads.png} \caption{Strong Efficiency \cite{Rajput2013}.}\label{fig:strong-scaling-efficiency}\end{figure}
+    \textbf{L1 Cache Miss Rate (Fig.~\ref{fig:strong-scaling-l1-miss}):} mpi\_conv rate doubled; `parallelized` low/stable near serial \cite{Yoon2012}.
+\begin{figure}[H] \centering \includegraphics[width=0.7\linewidth]{figures/l1_miss_rate_vs_threads.png} \caption{Strong L1 Miss Rate.}\label{fig:strong-scaling-l1-miss}\end{figure}
+
+\textbf{3. Summary of Strong Scaling Findings}
+\begin{itemize}
+    \item MPI-only mpi\_conv outperformed `parallelized` in strong scaling.
+    \item mpi\_conv limited after 4 processes; `parallelized` struggled with hybrid overheads on the fixed problem size, despite good per-thread IPC and L1 cache behavior.
+    \item Results highlight that optimal parallel strategy is highly dependent on scaling regime and problem size relative to core count.
 \end{itemize}
 
 
 
-\subsection{\textbf{Benchmark Workloads}}
 
-Benchmark workloads are chosen based on key criteria: representativeness, scalability, memory/computation balance, reproducibility, and their suitability for multi-core evaluation. The goal is to probe both compute-bound and memory-bound behaviors across a range of image sizes and convolution configurations.
+% ====================================================================
+% --- CONCLUSION AND FUTURE WORK ---
+% ====================================================================
+\section{Conclusion and Future Work}
 
-\subsubsection{\textbf{Synthetic 2D Convolutions}}
+This research demonstrated the acceleration of 2D convolution kernels on multi-core CPUs and GPUs using MPI, OpenMP, and CUDA.
 
-To study the core computational kernel, we implement fixed-size 2D convolutions with square kernels over synthetic grayscale images \cite{Tousimojarad2017}.
+The CUDA implementation on an NVIDIA RTX 3050 GPU achieved a significant speedup of approximately 11.7$\times$ over the sequential CPU version, highlighting the massive parallelism available on GPUs. Nsight Compute profiling revealed that the kernel was largely compute-bound with high L1/L2 cache hit rates, though opportunities exist for improving memory coalescing and reducing texture unit stalls.
 
+For multi-core CPU parallelism, the hybrid OpenMP+MPI (`parallelized`) approach exhibited superior performance in weak scaling scenarios, achieving near-ideal scalability with constant execution time as problem size and core count increased proportionally. This indicates effective management of parallelism overheads and efficient use of shared memory resources \cite{Gawrych2023}. Conversely, in strong scaling experiments with a fixed problem size, the MPI-only (`mpi-conv`) version outperformed the hybrid model, particularly up to 4 processes, after which its benefits diminished due to Amdahl's Law limitations \cite{hager2021hpc} and increased MPI communication overheads. The hybrid model struggled in strong scaling due to the combined overheads of MPI and OpenMP becoming significant relative to the reduced work per thread. These contrasting results underscore that the optimal parallelization strategy is highly dependent on the scaling regime and the problem size-to-core ratio.
 
-\subsubsection{\textbf{Separable Filters}}
+Future work:
+Future work will focus on several architectural, tooling, and evaluation dimensions to further advance the performance and applicability of the proposed parallelization strategies.
 
-To evaluate the effects of cache reuse and two-pass access patterns, we implement separable convolutions.
+On the GPU side, additional optimizations of memory access patterns—particularly improvements in memory coalescing and shared memory utilization—are expected to yield further performance gains. Investigating advanced CUDA features such as dynamic parallelism and asynchronous operations may also enhance pipeline efficiency, particularly for more complex or nested computational tasks.
 
+For CPU-based parallelism, future efforts will involve evaluating alternative domain decomposition strategies and implementing more sophisticated hybrid load balancing mechanisms, particularly under strong scaling scenarios. Moreover, systematic experimentation across a broader set of CPU architectures—including variations in cache hierarchies, NUMA configurations, and interconnect topologies—will provide deeper insights into performance portability and architectural sensitivity.
 
+The use of larger compute clusters will also be considered to assess the scalability limits of the current approach. In addition, the potential for heterogeneous acceleration will be explored further through the integration of alternative platforms such as FPGAs, which may offer energy-efficient acceleration for specific kernel classes.
 
-\subsubsection{\textbf{End-to-End Image Processing Pipelines}}
+In terms of development tools, comparative analysis involving other parallel programming models (e.g., OpenACC) and the use of auto-parallelizing compilers will be pursued to evaluate their efficacy and applicability relative to the current implementation.
 
-To simulate realistic usage scenarios, we implement a three-stage filter pipeline.
-
-
-
-\subsection{\textbf{Measurement Methodology}}
-
-To ensure accurate and reproducible performance results, our measurement methodology adheres to best practices drawn from recent literature on high-performance convolution and parallel computing \cite{Gawrych2023,  Rajput2013,  Yoon2012}.
-
-\vspace{0.5em}
-\textbf{1) Controlled Experimental Environment:} All benchmarks are run on a dedicated machine with minimal background activity. Turbo boost and dynamic frequency scaling are left enabled to reflect realistic performance, but measurements are conducted under stable thermal conditions.
-
-\vspace{0.5em}
-\textbf{2) Baseline Definition:} The sequential reference implementation is compiled with identical optimization flags as its parallel counterparts (\texttt{-O3}), and evaluated using the same input datasets. This ensures that any measured speedup reflects true parallel efficiency and not variation in compilation or execution environment.
-
-\v\vspace{0.5em}
-\textbf{3) Repeatability and Statistical Significance:} Each experiment is run 10 times after 3 warm-up iterations. The reported execution time is the arithmetic mean of the valid runs. We also calculate and report the standard deviation to capture runtime variability.
-
-\vspace{0.5em}
-\textbf{4) Timer Accuracy:} Wall-clock execution time is measured, which ensures consistency across operating system and hardware configurations. Timing includes only the kernel execution, excluding I/O and setup phases, unless otherwise noted.
-
-\vspace{0.5em}
-\textbf{5) Scaling Experiments:} 
-We conduct both strong and weak scaling evaluations. For strong scaling, problem size remains fixed while thread count increases from 1 to 16. For weak scaling, the workload size grows proportionally with thread count to assess parallel overhead and memory behavior. Results will be interpreted in light of Amdahl’s Law, which characterizes the theoretical limits of strong scaling \cite{hager2021hpc}, and Gustafson’s Law, which describes expected performance under weak scaling \cite{Gustafson1988}.
-
-
-\vspace{0.5em}
-\textbf{6) Profiling and Hardware Analysis:} Low-level profiling is conducted using \texttt{perf}. We collect metrics such as cycles, instructions, cache misses, branch mispredictions, and memory bandwidth utilization. These metrics help correlate runtime behavior with architectural bottlenecks and assess the effectiveness.
-
-
-\subsection{\textbf{Performance Metrics and Plots}}
-
-To accurately convey both quantitative performance gains and underlying computational behavior, our evaluation will employ a selected set of performance metrics and visualizations. These choices follow established best practices from prior research in high-performance convolution and parallel computing \cite{Wang2023,  hager2021hpc, Rajput2013, Yoon2012}.
-
-\vspace{0.5em}
-\textbf{1) Speedup and Efficiency:} 
-We will compute speedup as:
-\begin{equation}
-    S(p) = \frac{T(1)}{T(p)}
-\end{equation}
-and parallel efficiency as:
-\begin{equation}
-    E(p) = \frac{S(p)}{p}
-\end{equation}
-where \(T(1)\) is the execution time of the sequential version and \(T(p)\) is the time with \(p\) threads. These metrics will be plotted against thread counts to evaluate scalability and identify diminishing returns due to overheads or contention \cite{Rajput2013}.
-
-\v\vspace{0.5em}
-\textbf{2) Throughput and Kernel Performance:} 
-We will report throughput in GFLOPS/s, defined by the theoretical number of floating-point operations in a convolution kernel divided by its execution time. This enables comparison with architectural peaks and identification of underutilization.
-
-\textbf{4) Strong and Weak Scaling Curves:} 
-We will generate strong scaling plots (fixed input size) and weak scaling plots (input size grows with thread count) to evaluate the scalability of our implementation. These plots will reveal how overheads such as synchronization and memory bandwidth contention grow with scale; their behavior will be interpreted in light of Amdahl’s Law and Gustafson’s Law as described in Section~3.3 \cite{hager2021hpc, Gustafson1988}.
-
-\vspace{0.5em}
-\textbf{5) Hardware Counter Visualizations:} 
-Using \texttt{perf}, we will collect metrics such as cycles, instructions retired, L1/L2/L3 cache miss rates, and memory bandwidth. These will be plotted as bar charts or line graphs to explain bottlenecks and guide future optimization, as demonstrated in \cite{Yoon2012}.
-
-\vspace{0.5em}
-\textbf{6) Statistical Rigor:} 
-All plots will be annotated with error bars reflecting the standard deviation over 10 runs. This practice enhances the interpretability of results and supports reproducibility by conveying variability in runtime behavior \cite{Yoon2012}.
-
-Our chosen metrics and visualizations aim to support a rigorous, transparent, and insightful analysis of parallel performance across all stages of implementation and testing.
-
-
-
+Finally, the evaluation framework will be extended to include metrics such as power consumption, thermal behavior, and performance-per-watt. These considerations are essential for realistic deployment scenarios, particularly in energy-constrained or thermally sensitive environments.
 
 
 

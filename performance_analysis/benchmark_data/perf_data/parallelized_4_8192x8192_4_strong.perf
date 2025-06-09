@@ -1,0 +1,16 @@
+# started on Sun Jun  8 01:32:09 2025
+
+
+ Performance counter stats for '../bin/parallelized Inputs/input_blur_waterfall_grey_8192x8192.raw 8192 8192 1 grey':
+
+     2,519,090,440      cycles                                                                
+     4,301,852,224      instructions                     #    1.71  insn per cycle            
+        16,098,091      L1-dcache-load-misses                                                 
+   <not supported>      LLC-load-misses                                                       
+
+       0.804886091 seconds time elapsed
+
+       0.326253000 seconds user
+       0.114492000 seconds sys
+
+

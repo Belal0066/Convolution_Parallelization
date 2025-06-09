@@ -4,7 +4,7 @@ from PIL import Image
 # Constants
 INPUT_FILE = "waterfall_grey_1920_2520.raw"
 INPUT_SIZE = (1920, 2520)  # (width, height)
-OUTPUT_SIZES = [(512, 512), (1024, 1024), (2048, 2048)]
+OUTPUT_SIZES = [(512, 512), (1024, 1024), (2048, 2048), (4096, 4096), (8192, 8192)]
 
 # Load raw grayscale image
 with open(INPUT_FILE, "rb") as f:
