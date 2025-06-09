@@ -1,0 +1,17 @@
+CUDA
+./cuda_conv waterfall_grey_1920_2520.raw 1920 2520 20 grey
+./cuda_conv waterfall_1920_2520.raw 1920 2520 <Number of Iterations> rgb -> Run CUDA
+sudo /usr/local/cuda-12.9/bin/ncu --set full --target-processes all ./cuda_conv waterfall_1920_2520.raw 1920 2520 100 rgb -> Measure Perfromance
+sudo /usr/local/cuda-12.9/bin/ncu --set full --target-processes all ./cuda_conv waterfall_grey_1920_2520.raw 1920 2520 100 grey
+
+
+CUDA Nsight Profiling
+sudo /usr/local/cuda-12.9/bin/ncu --set full --target-processes all --force-overwrite \
+  --export /home/salahjr/ASU/Parallel/Convolution_Parallelization/src/cuda/CUDANsight/prof_run.ncu-rep \
+  /home/salahjr/ASU/Parallel/Convolution_Parallelization/src/cuda/cuda_conv \
+  /home/salahjr/ASU/Parallel/Convolution_Parallelization/src/cuda/waterfall_grey_1920_2520.raw 1920 2520 100 grey -
+
+
+
+RAW to PNG
+convert -size 1920x2520 -depth 8 gray:blur_waterfall_grey_1920_2520.raw output.png

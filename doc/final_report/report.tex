@@ -73,10 +73,12 @@ Convolution is a foundational operation in image processing and computer vision,
 underpinning tasks such as edge detection, blurring, and feature extraction. It is also a core component in deep learning architectures. 
 Despite its importance, convolution is computationally intensive, particularly for high-resolution and multi-channel images, 
 due to its repeated access to neighboring pixels and large computational footprint.
+
 Sequential implementations of convolution, while straightforward, are inherently inefficient on modern multi-core CPUs. 
 They underutilize the available parallel hardware, leading to increased processing time and energy consumption. 
 This inefficiency arises from the inability of sequential code to exploit the concurrency offered by multi-core architectures.
 As a result, there is a pressing need for parallelization to fully leverage the computational power of modern hardware. 
+
 Automatic parallelization offers a promising solution by transforming sequential code into parallel code with minimal programmer intervention. 
 This process relies on static or dynamic code analysis to identify parallelizable sections,
 divide workloads, and coordinate execution across computing resources. 
@@ -96,6 +98,7 @@ Each parallelization approach will then be implemented and benchmarked
 to evaluate performance in terms of speedup, scalability, and efficiency.
 This work aims to provide insights into the trade-offs and benefits of distributed, shared-memory, and GPU-based parallelization techniques, 
 contributing to the broader understanding of high-performance computing in image processing.
+
 
 
 \section{Related Work}
@@ -152,6 +155,7 @@ The main challenge in the hybrid implementation is managing the interaction betw
 
 \subsubsection{Performance and Scalability}
 The hybrid MPI + OpenMP implementation achieves superior performance and scalability compared to the MPI-only version, especially on systems with many CPU cores per node. By fully utilizing both inter-node and intra-node parallelism, the implementation can process very large images efficiently and achieve high speedup. The reduction in communication overhead and the ability to overlap communication with computation make this approach well-suited for modern high-performance computing systems.
+
 
 
 
@@ -298,6 +302,7 @@ Overall, CUDA and Nsight Compute provided rich diagnostics, and the profiling in
 
 
 
+
 \subsection{\textbf{Multi-Core CPU}}
 
 \subsubsection{\textbf{Weak Scaling}}
@@ -421,6 +426,7 @@ The use of larger compute clusters will also be considered to assess the scalabi
 In terms of development tools, comparative analysis involving other parallel programming models (e.g., OpenACC) and the use of auto-parallelizing compilers will be pursued to evaluate their efficacy and applicability relative to the current implementation.
 
 Finally, the evaluation framework will be extended to include metrics such as power consumption, thermal behavior, and performance-per-watt. These considerations are essential for realistic deployment scenarios, particularly in energy-constrained or thermally sensitive environments.
+
 
 
 
